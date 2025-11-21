@@ -1,10 +1,8 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { DatabaseModule } from './database/database.module';
+import { AreasModule, SedesModule, CategoriasIndicadoresModule, TratamientosModule, RolesModule, PermisosModule, UsuariosModule, PacientesModule, MedicosModule, HistoriasClinicasModule, IndicadoresClinicosModule, DiagnosticosModule, RecetasModule } from './modules';
 
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [DatabaseModule, AreasModule, SedesModule, CategoriasIndicadoresModule, TratamientosModule, RolesModule, PermisosModule, UsuariosModule, PacientesModule, MedicosModule, HistoriasClinicasModule, IndicadoresClinicosModule, DiagnosticosModule, RecetasModule],
 })
 export class AppModule {}
