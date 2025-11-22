@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import { DiagnosticosService } from './diagnosticos.service';
 import { CreateDiagnosticoDto } from './dto/create-diagnostico.dto';
 import { UpdateDiagnosticoDto } from './dto/update-diagnostico.dto';
@@ -8,6 +18,7 @@ export class DiagnosticosController {
   constructor(private readonly diagnosticosService: DiagnosticosService) {}
 
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   create(@Body() createDiagnosticoDto: CreateDiagnosticoDto) {
     return this.diagnosticosService.create(createDiagnosticoDto);
   }
@@ -17,17 +28,31 @@ export class DiagnosticosController {
     return this.diagnosticosService.findAll();
   }
 
+  @Get('historia-clinica/:idHistoriaClinica')
+  findByHistoriaClinica(@Param('idHistoriaClinica') idHistoriaClinica: string) {
+    return this.diagnosticosService.findByHistoriaClinica(+idHistoriaClinica);
+  }
+
+  @Get('medico/:idMedico')
+  findByMedico(@Param('idMedico') idMedico: string) {
+    return this.diagnosticosService.findByMedico(+idMedico);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.diagnosticosService.findOne(+id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateDiagnosticoDto: UpdateDiagnosticoDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateDiagnosticoDto: UpdateDiagnosticoDto,
+  ) {
     return this.diagnosticosService.update(+id, updateDiagnosticoDto);
   }
 
   @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id') id: string) {
     return this.diagnosticosService.remove(+id);
   }

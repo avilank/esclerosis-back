@@ -2,7 +2,6 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  OneToMany,
   OneToOne,
   JoinColumn,
 } from 'typeorm';
@@ -42,9 +41,10 @@ export class Paciente {
   @JoinColumn({ name: 'idUsuario' })
   usuario: Usuario;
 
-  @OneToMany(
+  @OneToOne(
     () => HistoriaClinica,
     (historiaClinica) => historiaClinica.paciente,
+    { nullable: true },
   )
-  historiasClinicas: HistoriaClinica[];
+  historiaClinica: HistoriaClinica;
 }

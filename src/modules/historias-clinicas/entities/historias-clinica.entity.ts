@@ -2,7 +2,7 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  ManyToOne,
+  OneToOne,
   OneToMany,
   JoinColumn,
 } from 'typeorm';
@@ -14,7 +14,7 @@ export class HistoriaClinica {
   @PrimaryGeneratedColumn({ name: 'idHistoriaClinica' })
   idHistoriaClinica: number;
 
-  @Column({ name: 'idPaciente' })
+  @Column({ name: 'idPaciente', unique: true })
   idPaciente: number;
 
   @Column({ name: 'estado', length: 50, default: 'activa' })
@@ -23,7 +23,7 @@ export class HistoriaClinica {
   @Column({ name: 'fechaIngreso', type: 'date' })
   fechaIngreso: Date;
 
-  @ManyToOne(() => Paciente, (paciente) => paciente.historiasClinicas)
+  @OneToOne(() => Paciente, (paciente) => paciente.historiaClinica)
   @JoinColumn({ name: 'idPaciente' })
   paciente: Paciente;
 
