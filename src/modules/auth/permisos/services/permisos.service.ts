@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { CreatePermisoDto } from './dto/create-permiso.dto';
-import { UpdatePermisoDto } from './dto/update-permiso.dto';
+import { CreatePermisoDto } from '../dto/permiso/create-permiso.dto';
+import { UpdatePermisoDto } from '../dto/permiso/update-permiso.dto';
 
 @Injectable()
 export class PermisosService {
