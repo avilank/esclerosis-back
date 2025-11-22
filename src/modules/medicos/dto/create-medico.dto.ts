@@ -15,10 +15,7 @@ export class CreateMedicoDto {
   @IsString()
   @MaxLength(20)
   genero: string;
-
-  @IsInt()
-  idDiagnostico: number;
-
+  
   @IsInt()
   idArea: number;
 

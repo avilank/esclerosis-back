@@ -10,7 +10,7 @@ import {
 import { Area } from '../../areas/entities/area.entity';
 import { Sede } from '../../sedes/entities/sede.entity';
 import { Usuario } from '../../usuarios/entities/usuario.entity';
-import { Diagnostico } from '../../diagnosticos/entities/diagnostico.entity';
+
 
 @Entity('medico')
 export class Medico {
@@ -23,30 +23,13 @@ export class Medico {
   @Column({ name: 'genero', length: 20, nullable: true })
   genero: string;
 
-  @Column({ name: 'idDiagnostico', nullable: true })
-  idDiagnostico: number;
-
-  @Column({ name: 'idArea', nullable: true })
-  idArea: number;
-
-  @Column({ name: 'idSede', nullable: true })
-  idSede: number;
-
-  @Column({ name: 'idUsuario', nullable: true, unique: true })
-  idUsuario: number;
-
-  @ManyToOne(() => Area, (area) => area.medicos) 
-  @JoinColumn({ name: 'idArea' })
+  @ManyToOne(() => Area, (area) => area.idArea, { eager: true })
   area: Area;
 
-  @ManyToOne(() => Sede, (sede) => sede.medicos) 
-  @JoinColumn({ name: 'idSede' })
+  @ManyToOne(() => Sede, (sede) => sede.idSede, { eager: true })
   sede: Sede;
 
-  @OneToOne(() => Usuario, (usuario) => usuario.medico, { nullable: true }) 
-  @JoinColumn({ name: 'idUsuario' })
+  @OneToOne(() => Usuario, (usuario) => usuario.idUsuario, { eager: true })
   usuario: Usuario;
 
-  @OneToMany(() => Diagnostico, (diagnostico) => diagnostico.medico) 
-  diagnosticos: Diagnostico[]; 
 }
