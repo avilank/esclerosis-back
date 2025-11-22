@@ -6,15 +6,16 @@ import {
   OneToMany,
   OneToOne,
   JoinColumn,
+  PrimaryColumn,
 } from 'typeorm';
 import { Area } from '../../areas/entities/area.entity';
 import { Sede } from '../../sedes/entities/sede.entity';
 import { Usuario } from '../../usuarios/entities/usuario.entity';
-
+import { Diagnostico } from '../../diagnosticos/entities/diagnostico.entity';
 
 @Entity('medico')
 export class Medico {
-  @PrimaryGeneratedColumn({ name: 'idMedico' })
+  @PrimaryColumn({ type: 'int' })
   idMedico: number;
 
   @Column({ name: 'nombre', length: 255 })
@@ -24,12 +25,16 @@ export class Medico {
   genero: string;
 
   @ManyToOne(() => Area, (area) => area.idArea, { eager: true })
+  @JoinColumn({ name: 'idArea' })
   area: Area;
 
   @ManyToOne(() => Sede, (sede) => sede.idSede, { eager: true })
+  @JoinColumn({ name: 'idSede' })
   sede: Sede;
 
   @OneToOne(() => Usuario, (usuario) => usuario.idUsuario, { eager: true })
-  usuario: Usuario;
+  @JoinColumn({ name: 'idMedico' })
 
+  @OneToMany(() => Diagnostico, (diagnostico) => diagnostico.medico)
+  diagnosticos: Diagnostico[];
 }
