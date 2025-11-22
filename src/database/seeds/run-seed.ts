@@ -1,20 +1,12 @@
 import { DataSource } from 'typeorm';
 import { seedDatabase } from './seed';
 import { config } from 'dotenv';
+import databaseConfig from '../../config/database.config';
+import { DataSourceOptions } from 'typeorm/browser';
 
 config();
 
-const dataSource = new DataSource({
-  type: 'mysql',
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT, 10) || 3306,
-  username: process.env.DB_USERNAME || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'esclerosis_db',
-  entities: [__dirname + '/../../**/*.entity{.ts,.js}'],
-  synchronize: false,
-  logging: true,
-});
+const dataSource = new DataSource(databaseConfig() as DataSourceOptions);
 
 async function runSeed() {
   try {
@@ -34,5 +26,5 @@ async function runSeed() {
   }
 }
 
-runSeed();
+// runSeed();
 

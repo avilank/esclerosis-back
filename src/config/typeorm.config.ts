@@ -1,6 +1,4 @@
-import { registerAs } from '@nestjs/config';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import databaseConfig from './database.config';
 import { TypeOrmModuleAsyncOptions } from '@nestjs/typeorm';
 export const typeOrmConfig: TypeOrmModuleAsyncOptions = {
     imports: [ConfigModule],
@@ -11,8 +9,7 @@ export const typeOrmConfig: TypeOrmModuleAsyncOptions = {
         port: configService.get('database.port', 5432),
         username: configService.get('database.username'),
         password: configService.get('database.password'),
-        database: configService.get('database.name'),
-        entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+        database: configService.get('database.database'),
         synchronize: false,
         dropSchema: false,
         logging: false,

@@ -1,6 +1,6 @@
 export * from './areas/areas.module';
 export * from './sedes/sedes.module';
-export * from './indicadores-clinicos/categorias-indicadores/categorias-indicadores.module';
+export * from './indicadores-clinicos/indicadores-clinicos.module';
 export * from './tratamientos/tratamientos.module';
 export * from './auth/roles/roles.module';
 export * from './auth/permisos/permisos.module';

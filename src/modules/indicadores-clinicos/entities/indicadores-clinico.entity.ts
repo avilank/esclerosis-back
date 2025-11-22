@@ -6,7 +6,7 @@ import {
   OneToMany,
   JoinColumn,
 } from 'typeorm';
-import { CategoriaIndicador } from '../categorias-indicadores/entities/categorias-indicadore.entity';
+import { CategoriaIndicador } from './categorias-indicadores.entity';
 import { IndicadorClinicoDiagnostico } from './indicador-clinico-diagnostico.entity';
 
 @Entity('indicadores_clinicos')
