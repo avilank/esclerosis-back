@@ -19,7 +19,6 @@ export class MedicosService {
     
     @InjectRepository(Sede)
     private readonly sedeRepository: Repository<Sede>,
-    
 
   ) {}
 

@@ -28,20 +28,15 @@ export class CreatePacienteDto {
   generoPaciente: string;
 
   @IsString()
-  @IsOptional()
   @MaxLength(500)
-  direccionPaciente?: string;
+  direccionPaciente: string;
 
   @IsString()
-  @IsOptional()
   @MaxLength(20)
-  telefonoPaciente?: string;
+  telefonoPaciente: string;
 
   @IsDateString()
   @IsNotEmpty()
   fechaNacimiento: string;
 
-  @IsInt()
-  @IsOptional()
-  idUsuario?: number;
 }

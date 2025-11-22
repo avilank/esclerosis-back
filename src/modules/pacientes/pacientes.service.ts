@@ -1,26 +1,50 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreatePacienteDto } from './dto/create-paciente.dto';
 import { UpdatePacienteDto } from './dto/update-paciente.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Paciente } from './entities/paciente.entity';
+import { Repository } from 'typeorm';
+import { Usuario } from '../usuarios/entities/usuario.entity';
 
 @Injectable()
 export class PacientesService {
-  create(createPacienteDto: CreatePacienteDto) {
-    return 'This action adds a new paciente';
+  constructor(
+    @InjectRepository(Paciente)
+    private readonly pacienteRepository: Repository<Paciente>,
+  ) {}
+  
+  async create(createPacienteDto: CreatePacienteDto) {
+    const paciente = await this.pacienteRepository.findOneBy({ dniPaciente: createPacienteDto.dniPaciente });
+    if (paciente) {
+      throw new BadRequestException('Paciente ya existe');
+    }
+    return await this.pacienteRepository.save(createPacienteDto);
   }
 
-  findAll() {
-    return `This action returns all pacientes`;
+  async findAll() {
+    return await this.pacienteRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} paciente`;
+  async findOne(id: number) {
+    return await this.pacienteRepository.findOneBy({ idPaciente: id });
   }
 
-  update(id: number, updatePacienteDto: UpdatePacienteDto) {
-    return `This action updates a #${id} paciente`;
+  async update(id: number, updatePacienteDto: UpdatePacienteDto) {
+    const paciente = await this.pacienteRepository.findOneBy({ idPaciente: id });
+    if (!paciente) {
+      throw new BadRequestException('Paciente no encontrado');
+    }
+    return await this.pacienteRepository.save({
+      ...paciente,
+      ...updatePacienteDto,
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} paciente`;
+  async remove(id: number) {
+    const paciente = await this.pacienteRepository.findOneBy({ idPaciente: id });
+    if (!paciente) {
+      throw new BadRequestException('Paciente no encontrado');
+    }
+    return await this.pacienteRepository.delete(id);
   }
 }
