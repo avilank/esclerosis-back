@@ -4,11 +4,10 @@ import { MedicosService } from './medicos.service';
 import { MedicosController } from './medicos.controller';
 import { Medico } from './entities/medico.entity';
 import { Area } from '../areas/entities/area.entity';
-import { Usuario } from '../usuarios/entities/usuario.entity';
 import { Sede } from '../sedes/entities/sede.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Medico, Area, Sede, Usuario])],
+  imports: [TypeOrmModule.forFeature([Medico, Area, Sede])],
   controllers: [MedicosController],
   providers: [MedicosService],
   exports: [MedicosService],

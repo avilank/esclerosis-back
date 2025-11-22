@@ -6,7 +6,6 @@ import { Repository } from 'typeorm';
 import { Medico } from './entities/medico.entity';
 import { Area } from '../areas/entities/area.entity';
 import { Sede } from '../sedes/entities/sede.entity';
-import { Usuario } from '../usuarios/entities/usuario.entity';
 
 @Injectable()
 export class MedicosService {
@@ -21,25 +20,21 @@ export class MedicosService {
     @InjectRepository(Sede)
     private readonly sedeRepository: Repository<Sede>,
     
-    @InjectRepository(Usuario)
-    private readonly usuarioRepository: Repository<Usuario>,
 
   ) {}
 
   async create(createMedicoDto: CreateMedicoDto) {
     const area = await this.areaRepository.findOneBy({ idArea: createMedicoDto.idArea });
     const sede = await this.sedeRepository.findOneBy({ idSede: createMedicoDto.idSede });
-    const usuario = await this.usuarioRepository.findOneBy({ idUsuario: createMedicoDto.idUsuario });
 
-    if (!area || !sede || !usuario) {
-      throw new BadRequestException('Area, sede o usuario no encontrado');
+    if (!area || !sede ) {
+      throw new BadRequestException('Area o sede no encontrada');
     }
 
     return await this.medicoRepository.save({
       ...createMedicoDto,
       area,
       sede,
-      usuario,
     });
   }
 

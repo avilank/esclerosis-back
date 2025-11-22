@@ -34,7 +34,8 @@ export class Medico {
 
   @OneToOne(() => Usuario, (usuario) => usuario.idUsuario, { eager: true })
   @JoinColumn({ name: 'idMedico' })
-
+  usuario: Usuario;
+  
   @OneToMany(() => Diagnostico, (diagnostico) => diagnostico.medico)
   diagnosticos: Diagnostico[];
 }
