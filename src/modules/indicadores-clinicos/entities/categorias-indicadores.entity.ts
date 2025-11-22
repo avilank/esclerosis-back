@@ -4,7 +4,7 @@ import {
   Column,
   OneToMany,
 } from 'typeorm';
-import { IndicadorClinico } from './indicadores-clinico.entity';
+import { IndicadorClinico } from './indicadores-clinicos.entity';
 
 @Entity('categoria_indicadores')
 export class CategoriaIndicador {
@@ -14,9 +14,6 @@ export class CategoriaIndicador {
   @Column({ name: 'descripcion', length: 255 })
   descripcion: string;
 
-  @OneToMany(
-    () => IndicadorClinico,
-    (indicadorClinico) => indicadorClinico.categoriaIndicador,
-  )
+  @OneToMany(() => IndicadorClinico,(indicadorClinico) => indicadorClinico.categoriaIndicador)
   indicadoresClinicos: IndicadorClinico[];
 }

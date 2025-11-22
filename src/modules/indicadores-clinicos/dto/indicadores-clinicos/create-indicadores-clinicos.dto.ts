@@ -7,9 +7,6 @@ import {
 } from 'class-validator';
 
 export class CreateIndicadoresClinicoDto {
-  @IsInt()
-  @IsOptional()
-  idCategoriaIndicador?: number;
 
   @IsString()
   @IsNotEmpty()
@@ -17,11 +14,13 @@ export class CreateIndicadoresClinicoDto {
   nombre: string;
 
   @IsString()
-  @IsOptional()
-  @MaxLength(50)
-  unidad?: string;
+  @MaxLength(255)
+  descripcion: string;
 
   @IsString()
-  @IsOptional()
-  descripcion?: string;
+  @MaxLength(255)
+  unidad: string;
+
+  @IsInt()
+  idCategoriaIndicador: number;
 }

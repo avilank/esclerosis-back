@@ -9,7 +9,7 @@ import { Usuario } from 'src/modules/usuarios/entities/usuario.entity';
 import { Paciente } from 'src/modules/pacientes/entities/paciente.entity';
 import { Medico } from 'src/modules/medicos/entities/medico.entity';
 import { HistoriaClinica } from 'src/modules/historias-clinicas/entities/historias-clinica.entity';
-import { IndicadorClinico } from 'src/modules/indicadores-clinicos/entities/indicadores-clinico.entity';
+import { IndicadorClinico } from 'src/modules/indicadores-clinicos/entities/indicadores-clinicos.entity';
 import { Diagnostico } from 'src/modules/diagnosticos/entities/diagnostico.entity';
 import { Receta } from 'src/modules/recetas/entities/receta.entity';
 import { PermisoRol } from 'src/modules/auth/permisos/entities/permiso-rol.entity';

@@ -1,6 +1,6 @@
 import { IsString, IsNotEmpty, MaxLength } from 'class-validator';
 
-export class CreateCategoriasIndicadoreDto {
+export class CreateCategoriasIndicadoresDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(255)

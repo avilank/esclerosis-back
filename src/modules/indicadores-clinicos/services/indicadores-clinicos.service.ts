@@ -1,26 +1,68 @@
-import { Injectable } from '@nestjs/common';
-import { CreateIndicadoresClinicoDto } from '../dto/indicadores-clinicos/create-indicadores-clinico.dto';
-import { UpdateIndicadoresClinicoDto } from '../dto/indicadores-clinicos/update-indicadores-clinico.dto';
-
+import { BadRequestException, Injectable } from '@nestjs/common';
+import * as dto from '../dto/index';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { IndicadorClinico } from '../entities/indicadores-clinicos.entity';
+import { CategoriaIndicador } from '../entities/categorias-indicadores.entity';
+import { NotFoundException } from '@nestjs/common';
 @Injectable()
 export class IndicadoresClinicosService {
-  create(createIndicadoresClinicoDto: CreateIndicadoresClinicoDto) {
-    return 'This action adds a new indicadoresClinico';
+  constructor(
+    @InjectRepository(IndicadorClinico)
+    private readonly indicadorClinicoRepository: Repository<IndicadorClinico>,
+    @InjectRepository(CategoriaIndicador)
+    private readonly categoriaIndicadorRepository: Repository<CategoriaIndicador>,
+
+  ) {}
+
+  async create(createIndicadoresClinicoDto: dto.CreateIndicadoresClinicoDto) {
+    const categoriaIndicador = await this.categoriaIndicadorRepository.findOneBy({ idTipoIndicador: createIndicadoresClinicoDto.idCategoriaIndicador });
+    if (!categoriaIndicador) {  
+      throw new BadRequestException('Categoria de indicador no encontrada');
+    }
+    return this.indicadorClinicoRepository.save({
+      ...createIndicadoresClinicoDto,
+      categoriaIndicador,
+    });
   }
 
-  findAll() {
-    return `This action returns all indicadoresClinicos`;
+  async findAll() {
+    return await this.indicadorClinicoRepository.find({
+      relations: {
+        categoriaIndicador: true,
+      },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} indicadoresClinico`;
+  async findOne(id: number) {
+    const indicadorClinico = await this.indicadorClinicoRepository.findOne({
+      where: { idIndicador: id },
+      relations: ['categoriaIndicador'],
+    });
+  
+    if (!indicadorClinico) {
+      throw new BadRequestException('Indicador clinico no encontrado');
+    }
+  
+    return indicadorClinico;
   }
 
-  update(id: number, updateIndicadoresClinicoDto: UpdateIndicadoresClinicoDto) {
-    return `This action updates a #${id} indicadoresClinico`;
+  async update(id: number, updateIndicadoresClinicoDto: dto.UpdateIndicadoresClinicoDto) {
+    const indicadorClinico = await this.indicadorClinicoRepository.findOneBy({ idIndicador: id });
+    if (!indicadorClinico) {
+      throw new BadRequestException('Indicador clinico no encontrado');
+    }
+    return this.indicadorClinicoRepository.save({
+      ...indicadorClinico,
+      ...updateIndicadoresClinicoDto,
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} indicadoresClinico`;
+  async remove(id: number) {
+    const indicadorClinico = await this.indicadorClinicoRepository.findOneBy({ idIndicador: id });
+    if (!indicadorClinico) {
+      throw new BadRequestException('Indicador clinico no encontrado');
+    }
+    return this.indicadorClinicoRepository.delete(id);
   }
 }
