@@ -4,9 +4,11 @@ import { DiagnosticosService } from './diagnosticos.service';
 import { DiagnosticosController } from './diagnosticos.controller';
 import { Diagnostico } from './entities/diagnostico.entity';
 import { IndicadorClinicoDiagnostico } from '../indicadores-clinicos/entities/indicador-clinico-diagnostico.entity';
+import { HistoriaClinica } from '../historias-clinicas/entities/historias-clinica.entity';
+import { Medico } from '../medicos/entities/medico.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Diagnostico, IndicadorClinicoDiagnostico])],
+  imports: [TypeOrmModule.forFeature([Diagnostico, IndicadorClinicoDiagnostico, HistoriaClinica, Medico])],
   controllers: [DiagnosticosController],
   providers: [DiagnosticosService],
   exports: [DiagnosticosService],

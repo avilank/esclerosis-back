@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
-import { AuthService } from './authentication/auth.service';
-import { AuthController } from './authentication/auth.controller';
+import { AuthenticationModule } from './authentication/authentication.module';
+import { PermisosModule } from './permisos/permisos.module';
+import { RolesModule } from './roles/roles.module';
 
 @Module({
-  controllers: [AuthController],
-  providers: [AuthService],
+  imports: [AuthenticationModule, PermisosModule, RolesModule],
+  exports: [AuthenticationModule, PermisosModule, RolesModule],
 })
 export class AuthModule {}
