@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { IndicadoresClinicosService } from './indicadores-clinicos.service';
-import { IndicadoresClinicosController } from './indicadores-clinicos.controller';
+import { IndicadoresClinicosService, CategoriasIndicadoresService } from './services';
+import { IndicadoresClinicosController, CategoriasIndicadoresController } from './controllers';
 import { IndicadorClinico } from './entities/indicadores-clinico.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([IndicadorClinico])],
-  controllers: [IndicadoresClinicosController],
-  providers: [IndicadoresClinicosService],
-  exports: [IndicadoresClinicosService],
+  controllers: [IndicadoresClinicosController, CategoriasIndicadoresController],
+  providers: [IndicadoresClinicosService, CategoriasIndicadoresService],
+  exports: [IndicadoresClinicosService, CategoriasIndicadoresService],
 })
-export class IndicadoresClinicosModule {}
+export class IndicadoresClinicosModule { }

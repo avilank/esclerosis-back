@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { CreateIndicadoresClinicoDto } from './dto/indicadores-clinicos/create-indicadores-clinico.dto';
-import { UpdateIndicadoresClinicoDto } from './dto/indicadores-clinicos/update-indicadores-clinico.dto';
+import { CreateIndicadoresClinicoDto } from '../dto/indicadores-clinicos/create-indicadores-clinico.dto';
+import { UpdateIndicadoresClinicoDto } from '../dto/indicadores-clinicos/update-indicadores-clinico.dto';
 
 @Injectable()
 export class IndicadoresClinicosService {

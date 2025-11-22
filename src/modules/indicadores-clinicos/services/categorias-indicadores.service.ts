@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CreateCategoriasIndicadoreDto } from './dto/create-categorias-indicadore.dto';
-import { UpdateCategoriasIndicadoreDto } from './dto/update-categorias-indicadore.dto';
+import { CreateCategoriasIndicadoreDto, UpdateCategoriasIndicadoreDto } from '../dto';
 
 @Injectable()
 export class CategoriasIndicadoresService {

@@ -1,11 +1,11 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { IndicadoresClinicosService } from './indicadores-clinicos.service';
+import { IndicadoresClinicosService } from './services/indicadores-clinicos.service';
 import { CreateIndicadoresClinicoDto } from './dto/indicadores-clinicos/create-indicadores-clinico.dto';
 import { UpdateIndicadoresClinicoDto } from './dto/indicadores-clinicos/update-indicadores-clinico.dto';
 
 @Controller('indicadores-clinicos')
 export class IndicadoresClinicosController {
-  constructor(private readonly indicadoresClinicosService: IndicadoresClinicosService) {}
+  constructor(private readonly indicadoresClinicosService: IndicadoresClinicosService) { }
 
   @Post()
   create(@Body() createIndicadoresClinicoDto: CreateIndicadoresClinicoDto) {

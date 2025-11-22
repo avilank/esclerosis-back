@@ -4,7 +4,7 @@ import {
   Column,
   OneToMany,
 } from 'typeorm';
-import { IndicadorClinico } from '../../entities/indicadores-clinico.entity';
+import { IndicadorClinico } from './indicadores-clinico.entity';
 
 @Entity('categoria_indicadores')
 export class CategoriaIndicador {

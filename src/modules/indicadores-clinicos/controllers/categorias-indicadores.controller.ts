@@ -1,11 +1,10 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { CategoriasIndicadoresService } from './categorias-indicadores.service';
-import { CreateCategoriasIndicadoreDto } from './dto/create-categorias-indicadore.dto';
-import { UpdateCategoriasIndicadoreDto } from './dto/update-categorias-indicadore.dto';
+import { CategoriasIndicadoresService } from '../services';
+import { CreateCategoriasIndicadoreDto, UpdateCategoriasIndicadoreDto } from '../dto';
 
 @Controller('categorias-indicadores')
 export class CategoriasIndicadoresController {
-  constructor(private readonly categoriasIndicadoresService: CategoriasIndicadoresService) {}
+  constructor(private readonly categoriasIndicadoresService: CategoriasIndicadoresService) { }
 
   @Post()
   create(@Body() createCategoriasIndicadoreDto: CreateCategoriasIndicadoreDto) {
