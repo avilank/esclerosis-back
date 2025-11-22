@@ -23,11 +23,8 @@ export class Medico {
   @Column({ name: 'genero', length: 20, nullable: true })
   genero: string;
 
-  @Column({ name: 'especialidad', length: 255, nullable: true })
-  especialidad: string;
-
-  @Column({ name: 'numeroColegiatura', length: 50, unique: true, nullable: true })
-  numeroColegiatura: string;
+  @Column({ name: 'idDiagnostico', nullable: true })
+  idDiagnostico: number;
 
   @Column({ name: 'idArea', nullable: true })
   idArea: number;
@@ -38,18 +35,18 @@ export class Medico {
   @Column({ name: 'idUsuario', nullable: true, unique: true })
   idUsuario: number;
 
-  @ManyToOne(() => Area, (area) => area.medicos)
+  @ManyToOne(() => Area, (area) => area.medicos) 
   @JoinColumn({ name: 'idArea' })
   area: Area;
 
-  @ManyToOne(() => Sede, (sede) => sede.medicos)
+  @ManyToOne(() => Sede, (sede) => sede.medicos) 
   @JoinColumn({ name: 'idSede' })
   sede: Sede;
 
-  @OneToOne(() => Usuario, (usuario) => usuario.medico, { nullable: true })
+  @OneToOne(() => Usuario, (usuario) => usuario.medico, { nullable: true }) 
   @JoinColumn({ name: 'idUsuario' })
   usuario: Usuario;
 
-  @OneToMany(() => Diagnostico, (diagnostico) => diagnostico.medico)
-  diagnosticos: Diagnostico[];
+  @OneToMany(() => Diagnostico, (diagnostico) => diagnostico.medico) 
+  diagnosticos: Diagnostico[]; 
 }

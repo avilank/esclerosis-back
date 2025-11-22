@@ -13,29 +13,18 @@ export class CreateMedicoDto {
   nombre: string;
 
   @IsString()
-  @IsOptional()
   @MaxLength(20)
-  genero?: string;
-
-  @IsString()
-  @IsOptional()
-  @MaxLength(255)
-  especialidad?: string;
-
-  @IsString()
-  @IsOptional()
-  @MaxLength(50)
-  numeroColegiatura?: string;
+  genero: string;
 
   @IsInt()
-  @IsOptional()
-  idArea?: number;
+  idDiagnostico: number;
 
   @IsInt()
-  @IsOptional()
-  idSede?: number;
+  idArea: number;
 
   @IsInt()
-  @IsOptional()
-  idUsuario?: number;
+  idSede: number;
+
+  @IsInt()
+  idUsuario: number;
 }
