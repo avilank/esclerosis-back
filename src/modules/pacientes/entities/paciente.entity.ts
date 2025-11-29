@@ -4,13 +4,14 @@ import {
   Column,
   OneToOne,
   JoinColumn,
+  PrimaryColumn,
 } from 'typeorm';
 import { HistoriaClinica } from '../../historias-clinicas/entities/historias-clinica.entity';
 import { Usuario } from '../../usuarios/entities/usuario.entity';
 
 @Entity('paciente')
 export class Paciente {
-  @PrimaryGeneratedColumn({ name: 'idPaciente' })
+  @PrimaryColumn({ type: 'int' })
   idPaciente: number;
 
   @Column({ name: 'dniPaciente', length: 20, unique: true })
@@ -34,17 +35,11 @@ export class Paciente {
   @Column({ name: 'fechaNacimiento', type: 'date' })
   fechaNacimiento: Date;
 
-  @Column({ name: 'idUsuario', nullable: true, unique: true })
-  idUsuario: number;
-
-  @OneToOne(() => Usuario, (usuario) => usuario.paciente, { nullable: true })
-  @JoinColumn({ name: 'idUsuario' })
+  @OneToOne(() => Usuario, (usuario) => usuario.paciente, { eager: true })
+  @JoinColumn({ name: 'idPaciente' })
   usuario: Usuario;
 
-  @OneToOne(
-    () => HistoriaClinica,
-    (historiaClinica) => historiaClinica.paciente,
-    { nullable: true },
-  )
+  @OneToOne(() => HistoriaClinica,(historiaClinica) => historiaClinica.paciente)
   historiaClinica: HistoriaClinica;
+
 }

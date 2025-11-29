@@ -1,25 +1,46 @@
-import { Injectable } from '@nestjs/common';
-import { CreateCategoriasIndicadoreDto, UpdateCategoriasIndicadoreDto } from '../dto';
+import { UpdateCategoriasIndicadoreDto } from './../dto/categoria-indicadores/update-categorias-indicadores.dto';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import * as dto from '../dto/index';
+import { InjectRepository } from '@nestjs/typeorm';
+import { CategoriaIndicador } from '../entities/categorias-indicadores.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class CategoriasIndicadoresService {
-  create(createCategoriasIndicadoreDto: CreateCategoriasIndicadoreDto) {
-    return 'This action adds a new categoriasIndicadore';
+  constructor(
+    @InjectRepository(CategoriaIndicador)
+    private readonly categoriaIndicadorRepository: Repository<CategoriaIndicador>,
+  ) {}
+
+  async create(createCategoriasIndicadoreDto: dto.CreateCategoriasIndicadoresDto) {
+    const categoriaIndicador = this.categoriaIndicadorRepository.create(createCategoriasIndicadoreDto);
+    return await this.categoriaIndicadorRepository.save(categoriaIndicador);
   }
 
-  findAll() {
-    return `This action returns all categoriasIndicadores`;
+  async findAll() {
+    return await this.categoriaIndicadorRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} categoriasIndicadore`;
+  async findOne(id: number) {
+    return await this.categoriaIndicadorRepository.findOne({ where: { idTipoIndicador: id } });
   }
 
-  update(id: number, updateCategoriasIndicadoreDto: UpdateCategoriasIndicadoreDto) {
-    return `This action updates a #${id} categoriasIndicadore`;
+  async update(id: number, UpdateCategoriasIndicadoreDto: UpdateCategoriasIndicadoreDto) {
+    const categoriaIndicador = await this.categoriaIndicadorRepository.findOneBy({ idTipoIndicador: id });
+    if (!categoriaIndicador) {
+      throw new BadRequestException('Categoria indicador no encontrada');
+    }
+    return await this.categoriaIndicadorRepository.save({
+      ...categoriaIndicador,
+      ...UpdateCategoriasIndicadoreDto,
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} categoriasIndicadore`;
+  async remove(id: number) {
+    const categoriaIndicador = await this.categoriaIndicadorRepository.findOne({ where: { idTipoIndicador: id } });
+    if (!categoriaIndicador) {
+      throw new NotFoundException('Categoria indicador no encontrada');
+    }
+    return await this.categoriaIndicadorRepository.delete(id);
   }
 }

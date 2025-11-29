@@ -1,27 +1,27 @@
 import {
-  IsInt,
   IsNotEmpty,
-  IsString,
+  IsInt,
   IsDateString,
-  IsOptional,
-  MaxLength,
+  IsString,
 } from 'class-validator';
 
-export class CreateRecetaDto {
+export class CreateIndicadoresClinicosDiagnosticoDto {
+
+
   @IsInt()
   @IsNotEmpty()
   idDiagnostico: number;
 
   @IsInt()
   @IsNotEmpty()
-  idTratamiento: number;
+  idIndicador: number;
 
   @IsString()
-  @MaxLength(255)
-  Modelo_IA: string;
+  @IsNotEmpty()
+  valor: string;
 
   @IsDateString()
   @IsNotEmpty()
-  fechaReceta: string;
+  fechaMedicion: Date;
 
 }

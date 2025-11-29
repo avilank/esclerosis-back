@@ -6,6 +6,7 @@ import {
   OneToMany,
   OneToOne,
   JoinColumn,
+  PrimaryColumn,
 } from 'typeorm';
 import { Area } from '../../areas/entities/area.entity';
 import { Sede } from '../../sedes/entities/sede.entity';
@@ -14,7 +15,7 @@ import { Diagnostico } from '../../diagnosticos/entities/diagnostico.entity';
 
 @Entity('medico')
 export class Medico {
-  @PrimaryGeneratedColumn({ name: 'idMedico' })
+  @PrimaryColumn({ type: 'int' })
   idMedico: number;
 
   @Column({ name: 'nombre', length: 255 })
@@ -23,33 +24,18 @@ export class Medico {
   @Column({ name: 'genero', length: 20, nullable: true })
   genero: string;
 
-  @Column({ name: 'especialidad', length: 255, nullable: true })
-  especialidad: string;
-
-  @Column({ name: 'numeroColegiatura', length: 50, unique: true, nullable: true })
-  numeroColegiatura: string;
-
-  @Column({ name: 'idArea', nullable: true })
-  idArea: number;
-
-  @Column({ name: 'idSede', nullable: true })
-  idSede: number;
-
-  @Column({ name: 'idUsuario', nullable: true, unique: true })
-  idUsuario: number;
-
-  @ManyToOne(() => Area, (area) => area.medicos)
+  @ManyToOne(() => Area, (area) => area.idArea, { eager: true })
   @JoinColumn({ name: 'idArea' })
   area: Area;
 
-  @ManyToOne(() => Sede, (sede) => sede.medicos)
+  @ManyToOne(() => Sede, (sede) => sede.idSede, { eager: true })
   @JoinColumn({ name: 'idSede' })
   sede: Sede;
 
-  @OneToOne(() => Usuario, (usuario) => usuario.medico, { nullable: true })
-  @JoinColumn({ name: 'idUsuario' })
+  @OneToOne(() => Usuario, (usuario) => usuario.idUsuario, { eager: true })
+  @JoinColumn({ name: 'idMedico' })
   usuario: Usuario;
-
+  
   @OneToMany(() => Diagnostico, (diagnostico) => diagnostico.medico)
   diagnosticos: Diagnostico[];
 }

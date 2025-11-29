@@ -1,25 +1,25 @@
 import {
   Entity,
-  PrimaryColumn,
   Column,
   ManyToOne,
   JoinColumn,
+  PrimaryGeneratedColumn,
+  Unique,
 } from 'typeorm';
 import { Diagnostico } from '../../diagnosticos/entities/diagnostico.entity';
-import { IndicadorClinico } from './indicadores-clinico.entity';
+import { IndicadorClinico } from './indicadores-clinicos.entity';
 
+
+@Unique(['diagnostico', 'indicadorClinico'])
 @Entity('indicadores_clinicos_diagnostico')
 export class IndicadorClinicoDiagnostico {
-  @PrimaryColumn({ name: 'idDiagnostico' })
-  idDiagnostico: number;
+  @PrimaryGeneratedColumn({ name: 'idDiagnosticoClinico' })
+  idDiagnosticoClinico: number;
 
-  @PrimaryColumn({ name: 'idIndicador' })
-  idIndicador: number;
-
-  @Column({ name: 'valor', type: 'varchar', length: 255, nullable: true })
+  @Column({ type: 'varchar', length: 255 })
   valor: string;
 
-  @Column({ name: 'fechaMedicion', type: 'date', nullable: true })
+  @Column({ name: 'fechaMedicion', type: 'date' })
   fechaMedicion: Date;
 
   @ManyToOne(
@@ -35,5 +35,6 @@ export class IndicadorClinicoDiagnostico {
   )
   @JoinColumn({ name: 'idIndicador' })
   indicadorClinico: IndicadorClinico;
+
 }
 

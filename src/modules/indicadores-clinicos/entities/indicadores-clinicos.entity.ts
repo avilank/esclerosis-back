@@ -14,17 +14,15 @@ export class IndicadorClinico {
   @PrimaryGeneratedColumn({ name: 'idIndicador' })
   idIndicador: number;
 
-  @Column({ name: 'idCategoriaIndicador', nullable: true })
-  idCategoriaIndicador: number;
 
   @Column({ name: 'nombre', length: 255 })
   nombre: string;
 
-  @Column({ name: 'unidad', length: 50, nullable: true })
-  unidad: string;
-
-  @Column({ name: 'descripcion', type: 'text', nullable: true })
+  @Column({ name: 'descripcion', length: 255 })
   descripcion: string;
+
+  @Column({ name: 'unidad', length: 255 })
+  unidad: string;
 
   @ManyToOne(
     () => CategoriaIndicador,

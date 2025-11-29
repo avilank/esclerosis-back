@@ -4,6 +4,7 @@ import {
   Column,
   ManyToOne,
   JoinColumn,
+  OneToOne,
 } from 'typeorm';
 import { Diagnostico } from '../../diagnosticos/entities/diagnostico.entity';
 import { Tratamiento } from '../../tratamientos/entities/tratamiento.entity';
@@ -13,22 +14,13 @@ export class Receta {
   @PrimaryGeneratedColumn({ name: 'idReceta' })
   idReceta: number;
 
-  @Column({ name: 'idDiagnostico' })
-  idDiagnostico: number;
-
-  @Column({ name: 'idTratamiento', nullable: true })
-  idTratamiento: number;
-
   @Column({ name: 'Modelo_IA', length: 255, nullable: true })
   Modelo_IA: string;
 
   @Column({ name: 'fechaReceta', type: 'date' })
   fechaReceta: Date;
 
-  @Column({ name: 'instrucciones', type: 'text', nullable: true })
-  instrucciones: string;
-
-  @ManyToOne(() => Diagnostico, (diagnostico) => diagnostico.recetas)
+  @OneToOne(() => Diagnostico, (diagnostico) => diagnostico.recetas) 
   @JoinColumn({ name: 'idDiagnostico' })
   diagnostico: Diagnostico;
 
