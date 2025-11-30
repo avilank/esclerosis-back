@@ -8,6 +8,7 @@ import {
   Delete,
   HttpCode,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { DiagnosticosService } from './diagnosticos.service';
 import { CreateDiagnosticoDto } from './dto/create-diagnostico.dto';
@@ -37,6 +38,12 @@ export class DiagnosticosController {
   findByMedico(@Param('idMedico') idMedico: string) {
     return this.diagnosticosService.findByMedico(+idMedico);
   }
+
+  @Get('stats/:idMedico')
+  async getStats(@Param('idMedico') idMedico: string) {
+    return this.diagnosticosService.getStatsByMedico(+idMedico);
+  }
+
 
   @Get(':id')
   findOne(@Param('id') id: string) {

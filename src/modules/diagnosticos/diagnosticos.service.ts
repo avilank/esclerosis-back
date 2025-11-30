@@ -111,6 +111,39 @@ export class DiagnosticosService {
     });
   }
 
+  async getStatsByMedico(idMedico: number) {
+    // Traer diagnósticos igual que findByMedico
+    const diagnosticos = await this.diagnosticoRepository.find({
+      where: { idMedico },
+      relations: ['historiaClinica', 'historiaClinica.paciente'],
+      order: { fechaDiagnostico: 'DESC' },
+    });
+  
+    // Todos los diagnósticos del médico
+    const total = diagnosticos.length;
+  
+    // Diagnósticos críticos
+    const criticos = diagnosticos.filter(d => d.estadoSalud === 'critico').length;
+
+    // Diagnósticos críticos
+    const controlados = diagnosticos.filter(d => d.estadoSalud !== 'critico').length;
+  
+    // Diagnósticos iniciales
+    const iniciales = diagnosticos.filter(d => d.es_diagnostico_inicial).length;
+  
+    return {
+      total,
+      criticos,
+      controlados,
+      iniciales,
+      diagnosticos, // opcional: para ver todo en consola
+    };
+  }
+  
+
+  
+  
+
   async update(
     id: number,
     updateDiagnosticoDto: UpdateDiagnosticoDto,

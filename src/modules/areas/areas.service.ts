@@ -44,6 +44,6 @@ export class AreasService {
     if (!area) {
       throw new NotFoundException('Area not found');
     }
-    return this.areaRepository.delete(area);
+    return this.areaRepository.delete(id);
   }
 }
