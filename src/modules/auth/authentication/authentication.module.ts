@@ -6,10 +6,10 @@ import { AuthController } from './controllers/authentication.controller';
 import { Usuario } from '../../usuarios/entities/usuario.entity';
 import { JwtUtil } from '../../../common/utils/jwt';
 import { jwtConfig } from '../../../config/jwt.config';
-
+import { Rol } from '../roles/entities/role.entity';
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Usuario]),
+    TypeOrmModule.forFeature([Usuario, Rol]),
     JwtModule.registerAsync(jwtConfig),
   ],
   controllers: [AuthController],

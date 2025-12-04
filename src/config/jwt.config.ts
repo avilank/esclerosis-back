@@ -3,8 +3,8 @@ import { JwtModuleAsyncOptions } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 
 export const jwtConfigValues = registerAs('jwt', () => ({
-    secret: process.env.AUTH_SECRET || 'my_secret_key',
-    expiresIn: process.env.AUTH_EXPIRES_IN || '24h',
+    secret: process.env.JWT_SECRET || 'my_secret_key',
+    expiresIn: process.env.JWT_EXPIRES_IN || '24h',
 }));
 
 export const jwtConfig: JwtModuleAsyncOptions = {

@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 interface JwtPayload {
     id: number;
     email: string;
-    dni: string;
+    username: string;
     rol: string;
 }
 @Injectable()
