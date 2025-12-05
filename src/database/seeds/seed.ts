@@ -13,7 +13,7 @@ import { IndicadorClinico } from 'src/modules/indicadores-clinicos/entities/indi
 import { Diagnostico } from 'src/modules/diagnosticos/entities/diagnostico.entity';
 import { Receta } from 'src/modules/recetas/entities/receta.entity';
 import { PermisoRol } from 'src/modules/auth/permisos/entities/permiso-rol.entity';
-import { IndicadorClinicoDiagnostico } from 'src/modules/indicadores-clinicos/entities/indicador-clinico-diagnostico.entity';
+import { DiagnosticoIndicadorClinico } from 'src/modules/models/models';
 import * as bcrypt from 'bcrypt';
 
 export async function seedDatabase(dataSource: DataSource) {
@@ -21,7 +21,7 @@ export async function seedDatabase(dataSource: DataSource) {
 
   try {
     // Limpiar tablas (en orden inverso de dependencias)
-    await dataSource.manager.delete(IndicadorClinicoDiagnostico, {});
+    await dataSource.manager.delete(DiagnosticoIndicadorClinico, {});
     await dataSource.manager.delete(Receta, {});
     await dataSource.manager.delete(Diagnostico, {});
     await dataSource.manager.delete(HistoriaClinica, {});
@@ -362,7 +362,7 @@ export async function seedDatabase(dataSource: DataSource) {
       },
     ];
     await dataSource.manager.save(
-      IndicadorClinicoDiagnostico,
+      DiagnosticoIndicadorClinico,
       indicadoresDiagnostico,
     );
     console.log(`✅ Indicadores asignados a diagnósticos`);

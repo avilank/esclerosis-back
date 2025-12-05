@@ -54,8 +54,26 @@ export class RecetasService {
       return receta;
   }
 
-  update(id: number, updateRecetaDto: UpdateRecetaDto) {
-    return `This action updates a #${id} receta`;
+  async update(id: number, updateRecetaDto: UpdateRecetaDto) {
+    const receta = await this.recetaRepository.findOneBy({ idReceta: id });
+    if (!receta) {
+      throw new BadRequestException('Receta no encontrada');
+    }
+
+    // Si se actualiza el tratamiento, verificar que existe
+    if (updateRecetaDto.idTratamiento) {
+      const tratamiento = await this.tratamientoRepository.findOneBy({
+        idTratamiento: updateRecetaDto.idTratamiento,
+      });
+      if (!tratamiento) {
+        throw new BadRequestException('Tratamiento no encontrado');
+      }
+    }
+
+    return this.recetaRepository.save({
+      ...receta,
+      ...updateRecetaDto,
+    });
   }
 
   async remove(id: number) {

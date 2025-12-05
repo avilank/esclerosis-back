@@ -20,11 +20,14 @@ export class Receta {
   @Column({ name: 'fechaReceta', type: 'date' })
   fechaReceta: Date;
 
-  @OneToOne(() => Diagnostico, (diagnostico) => diagnostico.recetas) 
+  @OneToOne(() => Diagnostico, (diagnostico) => diagnostico.recetas)
   @JoinColumn({ name: 'idDiagnostico' })
   diagnostico: Diagnostico;
 
   @ManyToOne(() => Tratamiento, (tratamiento) => tratamiento.recetas)
   @JoinColumn({ name: 'idTratamiento' })
   tratamiento: Tratamiento;
+
+  @Column({ name: 'contenido', type: 'text', nullable: true })
+  contenido: string;
 }

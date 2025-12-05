@@ -13,11 +13,11 @@ export class IndicadoresClinicosService {
     @InjectRepository(CategoriaIndicador)
     private readonly categoriaIndicadorRepository: Repository<CategoriaIndicador>,
 
-  ) {}
+  ) { }
 
   async create(createIndicadoresClinicoDto: dto.CreateIndicadoresClinicoDto) {
     const categoriaIndicador = await this.categoriaIndicadorRepository.findOneBy({ idTipoIndicador: createIndicadoresClinicoDto.idCategoriaIndicador });
-    if (!categoriaIndicador) {  
+    if (!categoriaIndicador) {
       throw new BadRequestException('Categoria de indicador no encontrada');
     }
     return this.indicadorClinicoRepository.save({
@@ -39,11 +39,11 @@ export class IndicadoresClinicosService {
       where: { idIndicador: id },
       relations: ['categoriaIndicador'],
     });
-  
+
     if (!indicadorClinico) {
       throw new BadRequestException('Indicador clinico no encontrado');
     }
-  
+
     return indicadorClinico;
   }
 

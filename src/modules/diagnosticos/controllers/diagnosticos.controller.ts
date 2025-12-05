@@ -10,13 +10,13 @@ import {
   HttpStatus,
   Query,
 } from '@nestjs/common';
-import { DiagnosticosService } from './diagnosticos.service';
-import { CreateDiagnosticoDto } from './dto/create-diagnostico.dto';
-import { UpdateDiagnosticoDto } from './dto/update-diagnostico.dto';
+import { DiagnosticosService } from '../services/diagnosticos.service';
+import { CreateDiagnosticoDto } from '../dto/create-diagnostico.dto';
+import { UpdateDiagnosticoDto } from '../dto/update-diagnostico.dto';
 
 @Controller('diagnosticos')
 export class DiagnosticosController {
-  constructor(private readonly diagnosticosService: DiagnosticosService) {}
+  constructor(private readonly diagnosticosService: DiagnosticosService) { }
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
