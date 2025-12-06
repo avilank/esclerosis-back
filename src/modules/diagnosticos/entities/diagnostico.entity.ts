@@ -9,7 +9,7 @@ import {
 import { HistoriaClinica } from '../../historias-clinicas/entities/historias-clinica.entity';
 import { Medico } from '../../medicos/entities/medico.entity';
 import { Receta } from '../../recetas/entities/receta.entity';
-import { IndicadorClinicoDiagnostico } from '../../indicadores-clinicos/entities/indicador-clinico-diagnostico.entity';
+import { DiagnosticoIndicadorClinico } from './diagnostico-indicadores.entity';
 
 @Entity('diagnostico')
 export class Diagnostico {
@@ -49,8 +49,8 @@ export class Diagnostico {
   recetas: Receta[];
 
   @OneToMany(
-    () => IndicadorClinicoDiagnostico,
-    (indicadorClinicoDiagnostico) => indicadorClinicoDiagnostico.diagnostico,
+    () => DiagnosticoIndicadorClinico,
+    (diagnosticoIndicadorClinico) => diagnosticoIndicadorClinico.diagnostico,
   )
-  indicadoresClinicosDiagnostico: IndicadorClinicoDiagnostico[];
+  IndicadoresClinicos: DiagnosticoIndicadorClinico[];
 }

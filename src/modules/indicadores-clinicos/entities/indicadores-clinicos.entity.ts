@@ -7,7 +7,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { CategoriaIndicador } from './categorias-indicadores.entity';
-import { IndicadorClinicoDiagnostico } from './indicador-clinico-diagnostico.entity';
+import { DiagnosticoIndicadorClinico } from 'src/modules/models/models';
 
 @Entity('indicadores_clinicos')
 export class IndicadorClinico {
@@ -32,8 +32,8 @@ export class IndicadorClinico {
   categoriaIndicador: CategoriaIndicador;
 
   @OneToMany(
-    () => IndicadorClinicoDiagnostico,
-    (indicadorClinicoDiagnostico) => indicadorClinicoDiagnostico.indicadorClinico,
+    () => DiagnosticoIndicadorClinico,
+    (diagnosticoIndicadorClinico) => diagnosticoIndicadorClinico.indicadorClinico,
   )
-  indicadoresClinicosDiagnostico: IndicadorClinicoDiagnostico[];
+  indicadoresClinicosDiagnostico: DiagnosticoIndicadorClinico[];
 }

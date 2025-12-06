@@ -5,7 +5,7 @@ import {
   IsString,
 } from 'class-validator';
 
-export class CreateIndicadoresClinicosDiagnosticoDto {
+export class CreateDiagnosticoIndicadoresDto {
 
 
   @IsInt()

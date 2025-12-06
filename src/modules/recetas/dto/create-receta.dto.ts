@@ -17,11 +17,15 @@ export class CreateRecetaDto {
   idTratamiento: number;
 
   @IsString()
+  @IsOptional()
   @MaxLength(255)
-  Modelo_IA: string;
+  Modelo_IA?: string;
 
   @IsDateString()
   @IsNotEmpty()
   fechaReceta: string;
 
+  @IsString()
+  @IsOptional()
+  contenido?: string;
 }

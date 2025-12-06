@@ -6,15 +6,15 @@ import {
   PrimaryGeneratedColumn,
   Unique,
 } from 'typeorm';
-import { Diagnostico } from '../../diagnosticos/entities/diagnostico.entity';
-import { IndicadorClinico } from './indicadores-clinicos.entity';
+import { Diagnostico } from './diagnostico.entity';
+import { IndicadorClinico } from 'src/modules/models/models';
 
 
 @Unique(['diagnostico', 'indicadorClinico'])
-@Entity('indicadores_clinicos_diagnostico')
-export class IndicadorClinicoDiagnostico {
-  @PrimaryGeneratedColumn({ name: 'idDiagnosticoClinico' })
-  idDiagnosticoClinico: number;
+@Entity('diagnostico_indicador_clinico')
+export class DiagnosticoIndicadorClinico {
+  @PrimaryGeneratedColumn({ name: 'idDiagnosticoIndicador' })
+  idDiagnosticoIndicadorClinico: number;
 
   @Column({ type: 'varchar', length: 255 })
   valor: string;
@@ -24,7 +24,7 @@ export class IndicadorClinicoDiagnostico {
 
   @ManyToOne(
     () => Diagnostico,
-    (diagnostico) => diagnostico.indicadoresClinicosDiagnostico,
+    (diagnostico) => diagnostico.IndicadoresClinicos,
   )
   @JoinColumn({ name: 'idDiagnostico' })
   diagnostico: Diagnostico;

@@ -4,11 +4,11 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Diagnostico } from './entities/diagnostico.entity';
-import { HistoriaClinica } from '../historias-clinicas/entities/historias-clinica.entity';
-import { Medico } from '../medicos/entities/medico.entity';
-import { CreateDiagnosticoDto } from './dto/create-diagnostico.dto';
-import { UpdateDiagnosticoDto } from './dto/update-diagnostico.dto';
+import { Diagnostico } from 'src/modules/models/models';
+import { HistoriaClinica } from 'src/modules/models/models';
+import { Medico } from 'src/modules/models/models';
+import { CreateDiagnosticoDto } from '../dto/create-diagnostico.dto';
+import { UpdateDiagnosticoDto } from '../dto/update-diagnostico.dto';
 
 @Injectable()
 export class DiagnosticosService {
@@ -56,7 +56,16 @@ export class DiagnosticosService {
     // Retornar con las relaciones cargadas
     const diagnosticoConRelaciones = await this.diagnosticoRepository.findOne({
       where: { idDiagnostico: saved.idDiagnostico },
-      relations: ['historiaClinica', 'medico', 'recetas', 'indicadoresClinicosDiagnostico'],
+      relations: [
+        'historiaClinica',
+        'historiaClinica.paciente',
+        'medico',
+        'recetas',
+        'recetas.tratamiento',
+        'IndicadoresClinicos',
+        'IndicadoresClinicos.indicadorClinico',
+        'IndicadoresClinicos.indicadorClinico.categoriaIndicador',
+      ],
     });
 
     if (!diagnosticoConRelaciones) {
@@ -70,7 +79,16 @@ export class DiagnosticosService {
 
   async findAll(): Promise<Diagnostico[]> {
     return await this.diagnosticoRepository.find({
-      relations: ['historiaClinica', 'medico', 'recetas'],
+      relations: [
+        'historiaClinica',
+        'historiaClinica.paciente',
+        'medico',
+        'recetas',
+        'recetas.tratamiento',
+        'IndicadoresClinicos',
+        'IndicadoresClinicos.indicadorClinico',
+        'IndicadoresClinicos.indicadorClinico.categoriaIndicador',
+      ],
       order: { fechaDiagnostico: 'DESC' },
     });
   }
@@ -83,8 +101,10 @@ export class DiagnosticosService {
         'historiaClinica.paciente',
         'medico',
         'recetas',
-        'indicadoresClinicosDiagnostico',
-        'indicadoresClinicosDiagnostico.indicadorClinico',
+        'recetas.tratamiento',
+        'IndicadoresClinicos',
+        'IndicadoresClinicos.indicadorClinico',
+        'IndicadoresClinicos.indicadorClinico.categoriaIndicador',
       ],
     });
 
@@ -98,7 +118,14 @@ export class DiagnosticosService {
   async findByHistoriaClinica(idHistoriaClinica: number): Promise<Diagnostico[]> {
     return await this.diagnosticoRepository.find({
       where: { idhistoriaClinica: idHistoriaClinica },
-      relations: ['medico', 'recetas'],
+      relations: [
+        'medico',
+        'recetas',
+        'recetas.tratamiento',
+        'IndicadoresClinicos',
+        'IndicadoresClinicos.indicadorClinico',
+        'IndicadoresClinicos.indicadorClinico.categoriaIndicador',
+      ],
       order: { fechaDiagnostico: 'DESC' },
     });
   }
@@ -106,7 +133,15 @@ export class DiagnosticosService {
   async findByMedico(idMedico: number): Promise<Diagnostico[]> {
     return await this.diagnosticoRepository.find({
       where: { idMedico },
-      relations: ['historiaClinica', 'historiaClinica.paciente'],
+      relations: [
+        'historiaClinica',
+        'historiaClinica.paciente',
+        'recetas',
+        'recetas.tratamiento',
+        'IndicadoresClinicos',
+        'IndicadoresClinicos.indicadorClinico',
+        'IndicadoresClinicos.indicadorClinico.categoriaIndicador',
+      ],
       order: { fechaDiagnostico: 'DESC' },
     });
   }
@@ -115,22 +150,29 @@ export class DiagnosticosService {
     // Traer diagnósticos igual que findByMedico
     const diagnosticos = await this.diagnosticoRepository.find({
       where: { idMedico },
-      relations: ['historiaClinica', 'historiaClinica.paciente'],
+      relations: [
+        'historiaClinica',
+        'historiaClinica.paciente',
+        'recetas',
+        'recetas.tratamiento',
+        'IndicadoresClinicos',
+        'IndicadoresClinicos.indicadorClinico',
+      ],
       order: { fechaDiagnostico: 'DESC' },
     });
-  
+
     // Todos los diagnósticos del médico
     const total = diagnosticos.length;
-  
+
     // Diagnósticos críticos
     const criticos = diagnosticos.filter(d => d.estadoSalud === 'critico').length;
 
     // Diagnósticos críticos
     const controlados = diagnosticos.filter(d => d.estadoSalud !== 'critico').length;
-  
+
     // Diagnósticos iniciales
     const iniciales = diagnosticos.filter(d => d.es_diagnostico_inicial).length;
-  
+
     return {
       total,
       criticos,
@@ -139,10 +181,10 @@ export class DiagnosticosService {
       diagnosticos, // opcional: para ver todo en consola
     };
   }
-  
 
-  
-  
+
+
+
 
   async update(
     id: number,

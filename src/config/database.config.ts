@@ -7,6 +7,7 @@ export default registerAs('database', () => ({
     username: process.env.DB_USERNAME || 'postgres',
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME || 'esclerosis_db',
-    synchronize: process.env.NODE_ENV !== 'production',
+    // synchronize: process.env.NODE_ENV !== 'production',
+    synchronize: true,
     autoLoadEntities: true,
 }));
