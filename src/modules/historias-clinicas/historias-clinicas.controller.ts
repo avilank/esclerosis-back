@@ -8,6 +8,7 @@ import {
   Delete,
   HttpCode,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { HistoriasClinicasService } from './historias-clinicas.service';
 import { CreateHistoriasClinicaDto } from './dto/create-historias-clinica.dto';
@@ -28,6 +29,14 @@ export class HistoriasClinicasController {
   @Get()
   findAll() {
     return this.historiasClinicasService.findAll();
+  }
+
+  @Get('search')
+  async search(@Query('q') q: string) {
+    if (!q || q.trim() === '') {
+      return [];
+    }
+    return this.historiasClinicasService.search(q.trim());
   }
 
   @Get('paciente/:idPaciente')

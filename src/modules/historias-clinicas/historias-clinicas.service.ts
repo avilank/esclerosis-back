@@ -145,4 +145,24 @@ export class HistoriasClinicasService {
     const historiaClinica = await this.findOne(id);
     await this.historiaClinicaRepository.remove(historiaClinica);
   }
+
+  //Adicionales
+  //Busqueda de historias clinicas por nombre o dni del paciente
+  async search(term: string): Promise<HistoriaClinica[]> {
+    if (!term || term.trim() === '') {
+      return [];
+    }
+    const searchTerm = `%${term.trim()}%`; //% para que busque cualquier palabra que contenga el termino
+    return await this.historiaClinicaRepository
+      .createQueryBuilder('hc')
+      .leftJoinAndSelect('hc.paciente', 'paciente')
+      .leftJoinAndSelect('hc.diagnosticos', 'diagnosticos')
+      .where(
+        '(paciente.nombrePaciente ILIKE :term OR paciente.dniPaciente ILIKE :term)',
+        { term: searchTerm }
+      )
+      .orderBy('hc.idHistoriaClinica', 'DESC')
+      .getMany();
+  }
+
 }
