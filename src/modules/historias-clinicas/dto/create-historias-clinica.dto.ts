@@ -17,7 +17,7 @@ export class CreateHistoriasClinicaDto {
   @MaxLength(50)
   estado?: string;
 
+  @IsOptional()
   @IsDateString()
-  @IsNotEmpty()
-  fechaIngreso: string;
+  fechaIngreso?: string;
 }

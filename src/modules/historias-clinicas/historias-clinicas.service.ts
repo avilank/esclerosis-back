@@ -46,7 +46,6 @@ export class HistoriasClinicasService {
 
     const historiaClinica = this.historiaClinicaRepository.create({
       ...createHistoriasClinicaDto,
-      fechaIngreso: new Date(createHistoriasClinicaDto.fechaIngreso),
       estado: createHistoriasClinicaDto.estado || 'activa',
     });
 
