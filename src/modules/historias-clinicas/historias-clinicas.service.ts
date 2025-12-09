@@ -148,10 +148,11 @@ export class HistoriasClinicasService {
   //Adicionales
   //Busqueda de historias clinicas por nombre o dni del paciente
   async search(term: string): Promise<HistoriaClinica[]> {
-    if (!term || term.trim() === '') {
-      return [];
-    }
-    const searchTerm = `%${term.trim()}%`; //% para que busque cualquier palabra que contenga el termino
+    const clean = term?.trim();
+
+    // Evitar búsquedas con 1 o 2 letras
+    if (!clean || clean.length < 3) return [];
+    const searchTerm = `%${clean}%`; 
     return await this.historiaClinicaRepository
       .createQueryBuilder('hc')
       .leftJoinAndSelect('hc.paciente', 'paciente')
