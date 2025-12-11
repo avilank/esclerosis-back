@@ -9,3 +9,4 @@ export * from './medicos/medicos.module';
 export * from './historias-clinicas/historias-clinicas.module';
 export * from './diagnosticos/diagnosticos.module';
 export * from './recetas/recetas.module';
+export * from './analytics/analytics.module';
