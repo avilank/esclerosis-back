@@ -20,8 +20,12 @@ export class HistoriaClinica {
   @Column({ name: 'estado', length: 50, default: 'activa' })
   estado: string;
 
-  @Column({ name: 'fechaIngreso', type: 'date', default: () => "CURRENT_DATE AT TIME ZONE 'America/Lima'" })
-  fechaIngreso: string; 
+  @Column({
+    name: 'fechaIngreso',
+    type: 'timestamptz',
+    default: () => "CURRENT_TIMESTAMP AT TIME ZONE 'America/Lima'",
+  })
+  fechaIngreso: Date;
 
   @OneToOne(() => Paciente, (paciente) => paciente.historiaClinica)
   @JoinColumn({ name: 'idPaciente' })

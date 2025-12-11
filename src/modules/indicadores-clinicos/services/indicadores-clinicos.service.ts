@@ -16,12 +16,16 @@ export class IndicadoresClinicosService {
   ) { }
 
   async create(createIndicadoresClinicoDto: dto.CreateIndicadoresClinicoDto) {
-    const categoriaIndicador = await this.categoriaIndicadorRepository.findOneBy({ idTipoIndicador: createIndicadoresClinicoDto.idCategoriaIndicador });
+    const { idCategoriaIndicador, ...data } = createIndicadoresClinicoDto;
+    const categoriaIndicador =
+      await this.categoriaIndicadorRepository.findOneBy({
+        idTipoIndicador: idCategoriaIndicador,
+      });
     if (!categoriaIndicador) {
       throw new BadRequestException('Categoria de indicador no encontrada');
     }
-    return this.indicadorClinicoRepository.save({
-      ...createIndicadoresClinicoDto,
+    return await this.indicadorClinicoRepository.save({
+      ...data,
       categoriaIndicador,
     });
   }
@@ -47,14 +51,35 @@ export class IndicadoresClinicosService {
     return indicadorClinico;
   }
 
-  async update(id: number, updateIndicadoresClinicoDto: dto.UpdateIndicadoresClinicoDto) {
-    const indicadorClinico = await this.indicadorClinicoRepository.findOneBy({ idIndicador: id });
+  async update(
+    id: number,
+    updateIndicadoresClinicoDto: dto.UpdateIndicadoresClinicoDto,
+  ) {
+    const indicadorClinico = await this.indicadorClinicoRepository.findOne({
+      where: { idIndicador: id },
+      relations: ['categoriaIndicador'],
+    });
     if (!indicadorClinico) {
       throw new BadRequestException('Indicador clinico no encontrado');
     }
+
+    let categoriaIndicador: CategoriaIndicador | null =
+      indicadorClinico.categoriaIndicador;
+    if (updateIndicadoresClinicoDto.idCategoriaIndicador !== undefined) {
+      categoriaIndicador = await this.categoriaIndicadorRepository.findOneBy({
+        idTipoIndicador: updateIndicadoresClinicoDto.idCategoriaIndicador,
+      });
+    }
+
+    if (!categoriaIndicador) {
+      throw new BadRequestException('Categoria de indicador no encontrada');
+    }
+
+    const { idCategoriaIndicador, ...data } = updateIndicadoresClinicoDto;
     return this.indicadorClinicoRepository.save({
       ...indicadorClinico,
-      ...updateIndicadoresClinicoDto,
+      ...data,
+      categoriaIndicador,
     });
   }
 

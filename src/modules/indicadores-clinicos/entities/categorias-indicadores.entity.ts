@@ -14,6 +14,13 @@ export class CategoriaIndicador {
   @Column({ name: 'descripcion', length: 255 })
   descripcion: string;
 
-  @OneToMany(() => IndicadorClinico,(indicadorClinico) => indicadorClinico.categoriaIndicador)
+  @Column({ type: 'boolean', default: false })
+  bloqueado: boolean;
+
+
+  @Column({ type: 'boolean', default: true })
+  isActive: boolean;
+
+  @OneToMany(() => IndicadorClinico, (indicadorClinico) => indicadorClinico.categoriaIndicador)
   indicadoresClinicos: IndicadorClinico[];
 }
