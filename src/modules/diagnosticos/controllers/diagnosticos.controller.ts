@@ -44,6 +44,11 @@ export class DiagnosticosController {
     return this.diagnosticosService.getStatsByMedico(+idMedico);
   }
 
+  @Get('stats/paciente/:idPaciente')
+  async getStatsByPaciente(@Param('idPaciente') idPaciente: string) {
+    return this.diagnosticosService.getStatsByPaciente(+idPaciente);
+  }
+
 
   @Get(':id')
   findOne(@Param('id') id: string) {

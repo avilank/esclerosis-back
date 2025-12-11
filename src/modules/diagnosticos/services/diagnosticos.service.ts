@@ -182,7 +182,71 @@ export class DiagnosticosService {
     };
   }
 
+  async getStatsByPaciente(idPaciente: number) {
+    // Buscar la historia clínica del paciente
+    const historiaClinica = await this.historiaClinicaRepository.findOne({
+      where: { idPaciente },
+      relations: ['paciente'],
+    });
 
+    if (!historiaClinica) {
+      return {
+        totalDiagnosticos: 0,
+        tratamientoActual: null,
+      };
+    }
+
+    // Traer todos los diagnósticos del paciente ordenados por fecha descendente
+    // Incluir recetas y tratamiento de cada receta
+    const diagnosticos = await this.diagnosticoRepository.find({
+      where: { idhistoriaClinica: historiaClinica.idHistoriaClinica },
+      relations: [
+        'recetas',
+        'recetas.tratamiento',
+        'medico',
+      ],
+      order: { fechaDiagnostico: 'DESC' },
+    });
+
+    // Total de diagnósticos
+    const totalDiagnosticos = diagnosticos.length;
+
+    // Obtener tratamiento del último diagnóstico
+    let tratamientoActual: { nombre: string } | null = null;
+    
+    if (diagnosticos.length > 0) {
+      const ultimoDiagnostico = diagnosticos[0];
+      
+      // Cargar el diagnóstico completo con todas las relaciones
+      const diagnosticoCompleto = await this.diagnosticoRepository.findOne({
+        where: { idDiagnostico: ultimoDiagnostico.idDiagnostico },
+        relations: [
+          'recetas',
+          'recetas.tratamiento',
+        ],
+      });
+
+      // Si el último diagnóstico tiene recetas, obtener la última receta (ordenada por fecha descendente)
+      if (diagnosticoCompleto?.recetas && diagnosticoCompleto.recetas.length > 0) {
+        // Ordenar recetas por fecha descendente y tomar la primera
+        const recetasOrdenadas = diagnosticoCompleto.recetas.sort((a, b) => 
+          new Date(b.fechaReceta).getTime() - new Date(a.fechaReceta).getTime()
+        );
+        const ultimaReceta = recetasOrdenadas[0];
+        
+        if (ultimaReceta?.tratamiento) {
+          tratamientoActual = {
+            nombre: ultimaReceta.tratamiento.nombre,
+          };
+        }
+      }
+    }
+
+    return {
+      totalDiagnosticos,
+      tratamientoActual,
+    };
+  }
 
 
 
