@@ -83,7 +83,7 @@ export async function seedUsuarios(dataSource: DataSource) {
           generoPaciente: 'Femenino',
           direccionPaciente: 'Av. Salud 123',
           telefonoPaciente: '900000001',
-          fechaNacimiento: new Date('1990-01-01'),
+          fechaNacimiento: new Date('1990-01-01').toDateString(),
         },
       ],
       ['idPaciente'],
