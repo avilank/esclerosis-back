@@ -22,8 +22,8 @@ export class HistoriaClinica {
 
   @Column({
     name: 'fechaIngreso',
-    type: 'timestamptz',
-    default: () => "CURRENT_TIMESTAMP AT TIME ZONE 'America/Lima'",
+    type: 'date',
+    default: () => "CURRENT_DATE AT TIME ZONE 'America/Lima'",
   })
   fechaIngreso: Date;
 
