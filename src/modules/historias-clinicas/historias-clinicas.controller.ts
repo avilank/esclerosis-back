@@ -62,4 +62,9 @@ export class HistoriasClinicasController {
   remove(@Param('id') id: string) {
     return this.historiasClinicasService.remove(+id);
   }
+
+  @Get('medico/:idMedico')
+  findMedicoHistoriaClinica(@Param('idMedico') idMedico: string) {
+    return this.historiasClinicasService.findMedicoHistoriaClinica(+idMedico);
+  }
 }

@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { HistoriaClinica } from './entities/historias-clinica.entity';
 import { Paciente } from '../pacientes/entities/paciente.entity';
+import { Medico } from '../medicos/entities/medico.entity';
 import { CreateHistoriasClinicaDto } from './dto/create-historias-clinica.dto';
 import { UpdateHistoriasClinicaDto } from './dto/update-historias-clinica.dto';
 
@@ -17,6 +18,8 @@ export class HistoriasClinicasService {
     private readonly historiaClinicaRepository: Repository<HistoriaClinica>,
     @InjectRepository(Paciente)
     private readonly pacienteRepository: Repository<Paciente>,
+    @InjectRepository(Medico)
+    private readonly medicoRepository: Repository<Medico>,
   ) { }
 
   async create(
@@ -161,6 +164,28 @@ export class HistoriasClinicasService {
         '(paciente.nombrePaciente ILIKE :term OR paciente.dniPaciente ILIKE :term)',
         { term: searchTerm }
       )
+      .orderBy('hc.idHistoriaClinica', 'DESC')
+      .getMany();
+  }
+
+  async findMedicoHistoriaClinica(idMedico: number): Promise<HistoriaClinica[]> {
+
+    const medico = await this.medicoRepository.findOne({
+      where: { idMedico },
+    });
+
+    if (!medico) {
+      throw new NotFoundException(
+        `Médico con ID ${idMedico} no encontrado`,
+      );
+    }
+
+    return await this.historiaClinicaRepository
+      .createQueryBuilder('hc')
+      .leftJoinAndSelect('hc.paciente', 'paciente')
+      .leftJoinAndSelect('hc.diagnosticos', 'diagnosticos')
+      .leftJoinAndSelect('diagnosticos.medico', 'medico')
+      .where('diagnosticos.idMedico = :idMedico', { idMedico })
       .orderBy('hc.idHistoriaClinica', 'DESC')
       .getMany();
   }
