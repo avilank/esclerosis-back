@@ -39,6 +39,17 @@ export class HistoriasClinicasController {
     return this.historiasClinicasService.search(q.trim());
   }
 
+  @Get('search/medico/:idMedico')
+  async searchByMedico(
+    @Param('idMedico') idMedico: string,
+    @Query('q') q: string,
+  ) {
+    if (!q || q.trim() === '') {
+      return [];
+    }
+    return this.historiasClinicasService.searchByMedico(q.trim(), +idMedico);
+  }
+
   @Get('paciente/:idPaciente')
   findByPaciente(@Param('idPaciente') idPaciente: string) {
     return this.historiasClinicasService.findByPaciente(+idPaciente);

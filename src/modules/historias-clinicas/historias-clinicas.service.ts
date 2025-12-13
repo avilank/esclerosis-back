@@ -190,4 +190,38 @@ export class HistoriasClinicasService {
       .getMany();
   }
 
+  // Búsqueda de historias clínicas por nombre o dni del paciente, filtradas por médico
+  async searchByMedico(term: string, idMedico: number): Promise<HistoriaClinica[]> {
+    const clean = term?.trim();
+
+    // Evitar búsquedas con 1 o 2 letras
+    if (!clean || clean.length < 3) return [];
+
+    // Verificar que el médico existe
+    const medico = await this.medicoRepository.findOne({
+      where: { idMedico },
+    });
+
+    if (!medico) {
+      throw new NotFoundException(
+        `Médico con ID ${idMedico} no encontrado`,
+      );
+    }
+
+    const searchTerm = `%${clean}%`;
+
+    return await this.historiaClinicaRepository
+      .createQueryBuilder('hc')
+      .leftJoinAndSelect('hc.paciente', 'paciente')
+      .leftJoinAndSelect('hc.diagnosticos', 'diagnosticos')
+      .leftJoinAndSelect('diagnosticos.medico', 'medico')
+      .where(
+        '(paciente.nombrePaciente ILIKE :term OR paciente.dniPaciente ILIKE :term)',
+        { term: searchTerm }
+      )
+      .andWhere('diagnosticos.idMedico = :idMedico', { idMedico })
+      .orderBy('hc.idHistoriaClinica', 'DESC')
+      .getMany();
+  }
+
 }
