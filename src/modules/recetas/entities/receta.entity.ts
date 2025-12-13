@@ -5,6 +5,8 @@ import {
   ManyToOne,
   JoinColumn,
   OneToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Diagnostico } from '../../diagnosticos/entities/diagnostico.entity';
 import { Tratamiento } from '../../tratamientos/entities/tratamiento.entity';
@@ -30,4 +32,10 @@ export class Receta {
 
   @Column({ name: 'contenido', type: 'text', nullable: true })
   contenido: string;
+
+  @CreateDateColumn({ name: 'createdAt', type: 'timestamp' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updatedAt', type: 'timestamp' })
+  updatedAt: Date;
 }

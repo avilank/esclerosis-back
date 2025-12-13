@@ -211,34 +211,49 @@ export class DiagnosticosService {
     // Total de diagnósticos
     const totalDiagnosticos = diagnosticos.length;
 
-    // Obtener tratamiento del último diagnóstico
-    let tratamientoActual: { nombre: string } | null = null;
-    
-    if (diagnosticos.length > 0) {
-      const ultimoDiagnostico = diagnosticos[0];
-      
-      // Cargar el diagnóstico completo con todas las relaciones
+    // Obtener la última receta según fecha de todas las recetas del paciente
+    // Recopilar todas las recetas de todos los diagnósticos
+    const todasLasRecetas: Array<{ receta: any; fechaReceta: Date }> = [];
+
+    for (const diagnostico of diagnosticos) {
       const diagnosticoCompleto = await this.diagnosticoRepository.findOne({
-        where: { idDiagnostico: ultimoDiagnostico.idDiagnostico },
+        where: { idDiagnostico: diagnostico.idDiagnostico },
         relations: [
           'recetas',
           'recetas.tratamiento',
         ],
       });
 
-      // Si el último diagnóstico tiene recetas, obtener la última receta (ordenada por fecha descendente)
       if (diagnosticoCompleto?.recetas && diagnosticoCompleto.recetas.length > 0) {
-        // Ordenar recetas por fecha descendente y tomar la primera
-        const recetasOrdenadas = diagnosticoCompleto.recetas.sort((a, b) => 
-          new Date(b.fechaReceta).getTime() - new Date(a.fechaReceta).getTime()
-        );
-        const ultimaReceta = recetasOrdenadas[0];
-        
-        if (ultimaReceta?.tratamiento) {
-          tratamientoActual = {
-            nombre: ultimaReceta.tratamiento.nombre,
-          };
-        }
+        diagnosticoCompleto.recetas.forEach(receta => {
+          todasLasRecetas.push({
+            receta,
+            fechaReceta: receta.fechaReceta instanceof Date
+              ? receta.fechaReceta
+              : new Date(receta.fechaReceta),
+          });
+        });
+      }
+    }
+
+    // Ordenar todas las recetas por fecha descendente y tomar la primera
+    todasLasRecetas.sort((a, b) =>
+      b.fechaReceta.getTime() - a.fechaReceta.getTime()
+    );
+
+    let tratamientoActual: { nombre: string; contenido: string; fechaReceta: string } | null = null;
+
+    if (todasLasRecetas.length > 0) {
+      const ultimaReceta = todasLasRecetas[0].receta;
+
+      if (ultimaReceta?.tratamiento) {
+        tratamientoActual = {
+          nombre: ultimaReceta.tratamiento.nombre,
+          contenido: ultimaReceta.contenido || '',
+          fechaReceta: ultimaReceta.fechaReceta instanceof Date
+            ? ultimaReceta.fechaReceta.toISOString().split('T')[0]
+            : new Date(ultimaReceta.fechaReceta).toISOString().split('T')[0],
+        };
       }
     }
 

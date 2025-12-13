@@ -28,6 +28,11 @@ export class CreateDiagnosticoDto {
 
   @IsString()
   @IsOptional()
+  @MaxLength(100)
+  gradoEnfermedad?: string;
+
+  @IsString()
+  @IsOptional()
   observaciones?: string;
 
   @IsBoolean()

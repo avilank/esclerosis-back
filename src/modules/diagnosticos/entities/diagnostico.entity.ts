@@ -5,6 +5,8 @@ import {
   ManyToOne,
   OneToMany,
   JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { HistoriaClinica } from '../../historias-clinicas/entities/historias-clinica.entity';
 import { Medico } from '../../medicos/entities/medico.entity';
@@ -27,6 +29,9 @@ export class Diagnostico {
 
   @Column({ name: 'estadoSalud', length: 100, nullable: true })
   estadoSalud: string;
+
+  @Column({ name: 'gradoEnfermedad', length: 100, nullable: true })
+  gradoEnfermedad: string;
 
   @Column({ name: 'observaciones', type: 'text', nullable: true })
   observaciones: string;
@@ -53,4 +58,10 @@ export class Diagnostico {
     (diagnosticoIndicadorClinico) => diagnosticoIndicadorClinico.diagnostico,
   )
   IndicadoresClinicos: DiagnosticoIndicadorClinico[];
+
+  @CreateDateColumn({ name: 'createdAt', type: 'timestamp' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updatedAt', type: 'timestamp' })
+  updatedAt: Date;
 }
