@@ -6,6 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Rol } from './entities/role.entity';
+import { Usuario } from '../../usuarios/entities/usuario.entity';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 
@@ -14,6 +15,8 @@ export class RolesService {
   constructor(
     @InjectRepository(Rol)
     private readonly rolRepository: Repository<Rol>,
+    @InjectRepository(Usuario)
+    private readonly usuarioRepository: Repository<Usuario>,
   ) {}
 
   async create(createRoleDto: CreateRoleDto): Promise<Rol> {
@@ -70,6 +73,24 @@ export class RolesService {
 
     Object.assign(rol, updateRoleDto);
     return await this.rolRepository.save(rol);
+  }
+
+  async countUserRole(id: number): Promise<{ count: number }> {
+    // Verificar que el rol existe
+    const rol = await this.rolRepository.findOne({
+      where: { idRol: id },
+    });
+
+    if (!rol) {
+      throw new NotFoundException(`Rol con ID ${id} no encontrado`);
+    }
+
+    // Contar usuarios que tienen este rol
+    const count = await this.usuarioRepository.count({
+      where: { idRol: id },
+    });
+
+    return { count };
   }
 
   async remove(id: number): Promise<void> {

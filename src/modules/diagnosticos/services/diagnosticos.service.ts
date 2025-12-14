@@ -165,10 +165,10 @@ export class DiagnosticosService {
     const total = diagnosticos.length;
 
     // Diagnósticos críticos
-    const criticos = diagnosticos.filter(d => d.estadoSalud === 'critico').length;
+    const criticos = diagnosticos.filter(d => d.estadoSalud === 'crítico').length;
 
     // Diagnósticos críticos
-    const controlados = diagnosticos.filter(d => d.estadoSalud !== 'critico').length;
+    const controlados = diagnosticos.filter(d => d.estadoSalud !== 'crítico').length;
 
     // Diagnósticos iniciales
     const iniciales = diagnosticos.filter(d => d.es_diagnostico_inicial).length;

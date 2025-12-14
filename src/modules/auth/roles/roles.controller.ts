@@ -38,6 +38,11 @@ export class RolesController {
     return this.rolesService.update(+id, updateRoleDto);
   }
 
+  @Get('userByRole/:id')
+  countUsersByRole(@Param('id') id: string) {
+    return this.rolesService.countUserRole(+id);
+  }
+
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id') id: string) {
