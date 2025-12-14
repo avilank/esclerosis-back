@@ -7,7 +7,7 @@ export class UpdateMedicoDto extends PartialType(CreateMedicoDto) {
     @IsNotEmpty()
     @MaxLength(255)
     @IsOptional()
-    name?: string;
+    nombre?: string;
     @IsString()
     @IsNotEmpty()
     @MaxLength(20)
