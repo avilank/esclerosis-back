@@ -195,10 +195,22 @@ export class AnalyticsEtlsService {
         }
       }
 
+      const medicoNombre = r.diagnostico?.medico?.nombre;
+      let dimMedico: DimMedico | null = null;
+      if (medicoNombre) {
+        dimMedico = await this.dimMedicoRepo.findOne({ where: { nombre: medicoNombre } });
+        if (!dimMedico) {
+          dimMedico = await this.dimMedicoRepo.save(
+            this.dimMedicoRepo.create({ nombre: medicoNombre, area: r.diagnostico?.medico?.area?.descripcion }),
+          );
+        }
+      }
+
       const hechoData: DeepPartial<HechoRecetas> = {
         modelo: dimModelo ?? undefined,
         tiempo: dimTiempo,
         organizacion: dimOrg ?? undefined,
+        medico: dimMedico ?? undefined,
         cantidadRecetasGeneradasCopilot: r.Modelo_IA === 'Copilot' ? 1 : 0,
         cantidadRecetasGeneradasDeepseek: r.Modelo_IA === 'Deepseek' ? 1 : 0,
       };
@@ -222,11 +234,17 @@ export class AnalyticsEtlsService {
     await this.cargarHechoRecetas();
   }
 
+  async reloadHechoRecetas(): Promise<{ status: string }> {
+    await this.hechoRecetasRepo.clear();
+    await this.cargarHechoRecetas();
+    return { status: 'ok' };
+  }
+
   // Hechos - lecturas
 
   async getHechoRecetas(): Promise<HechoRecetas[]> {
     return this.hechoRecetasRepo.find({
-      relations: ['modelo', 'tiempo', 'organizacion'],
+      relations: ['modelo', 'tiempo', 'organizacion', 'medico'],
     });
   }
 

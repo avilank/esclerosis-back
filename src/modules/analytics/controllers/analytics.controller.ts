@@ -52,6 +52,11 @@ export class AnalyticsController {
     return this.analyticsEtlsService.createHechoReceta(body);
   }
 
+  @Post('hechos/recetas/reload')
+  reloadHechoRecetas() {
+    return this.analyticsEtlsService.reloadHechoRecetas();
+  }
+
   @Post('hechos/indicadores')
   createHechoIndicador(@Body() body: any) {
     return this.analyticsEtlsService.createHechoIndicador(body);

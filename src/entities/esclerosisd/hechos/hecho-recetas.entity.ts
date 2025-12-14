@@ -2,6 +2,7 @@ import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { DimModeloIA } from '../dim-modelo-ia.entity';
 import { DimTiempo } from '../dim-tiempo.entity';
 import { DimOrganizacion } from '../dim-organizacion.entity';
+import { DimMedico } from '../dim-medico.entity';
 
 @Entity('HechoRecetas')
 export class HechoRecetas {
@@ -16,6 +17,9 @@ export class HechoRecetas {
 
   @ManyToOne(() => DimOrganizacion)
   organizacion: DimOrganizacion;
+
+  @ManyToOne(() => DimMedico)
+  medico: DimMedico;
 
   @Column({ name: 'CantidadRecetasGeneradasCopilot', type: 'int', default: 0 })
   cantidadRecetasGeneradasCopilot: number;
