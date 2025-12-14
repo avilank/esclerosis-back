@@ -62,6 +62,36 @@ export class UsuariosService {
     return rol;
   }
 
+  //Crear usuario desde historia clinica
+  async createUsuario(createUsuarioDto: CreateUsuarioDto) {
+    await this.checkUniqueUsernameEmail(createUsuarioDto.username, createUsuarioDto.email);
+    
+    // Validar y obtener el rol
+    let rol: Rol | null = null;
+    if (createUsuarioDto.idRol) {
+      rol = await this.validateRolIfPresent(createUsuarioDto.idRol);
+    }
+
+    // hash password
+    const saltRounds = 10;
+    const hashed = await bcrypt.hash(createUsuarioDto.password, saltRounds);
+
+    
+    const usuario = this.usuarioRepo.create({
+      username: createUsuarioDto.username,
+      email: createUsuarioDto.email,
+      password: hashed,
+      estado: createUsuarioDto.estado ?? true,
+      idRol: createUsuarioDto.idRol,
+    });
+    const usuarioGuardado = await this.usuarioRepo.save(usuario);
+
+    return await this.usuarioRepo.findOne({
+      where: { idUsuario: usuarioGuardado.idUsuario },
+      relations: ['rol'],
+    });
+  }
+
   async create(createUsuarioDto: CreateUsuarioDto) {
     await this.checkUniqueUsernameEmail(createUsuarioDto.username, createUsuarioDto.email);
     
