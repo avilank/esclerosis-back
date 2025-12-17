@@ -250,13 +250,13 @@ export class AnalyticsEtlsService {
 
   async getHechoIndicadores(): Promise<HechoIndicador[]> {
     return this.hechoIndicadorRepo.find({
-      relations: ['modelo', 'indicador', 'paciente', 'tiempo', 'medico', 'organizacion'],
+      relations: ['indicador', 'paciente', 'tiempo', 'medico', 'organizacion'],
     });
   }
 
   async getHechoPacientesEm(): Promise<HechoPacientesEM[]> {
     return this.hechoPacientesEmRepo.find({
-      relations: ['modelo', 'indicador', 'paciente', 'medico', 'organizacion'],
+      relations: ['modelo', 'paciente', 'tiempo', 'medico', 'organizacion'],
     });
   }
 

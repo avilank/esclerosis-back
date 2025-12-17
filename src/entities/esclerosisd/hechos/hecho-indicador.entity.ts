@@ -1,5 +1,4 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { DimModeloIA } from '../dim-modelo-ia.entity';
 import { DimIndicadorClinico } from '../dim-indicador.entity';
 import { DimPaciente } from '../dim-paciente.entity';
 import { DimTiempo } from '../dim-tiempo.entity';
@@ -10,9 +9,6 @@ import { DimOrganizacion } from '../dim-organizacion.entity';
 export class HechoIndicador {
   @PrimaryGeneratedColumn({ name: 'HechoIndicador_Id' })
   hechoIndicadorId: number;
-
-  @ManyToOne(() => DimModeloIA)
-  modelo: DimModeloIA;
 
   @ManyToOne(() => DimIndicadorClinico)
   indicador: DimIndicadorClinico;
