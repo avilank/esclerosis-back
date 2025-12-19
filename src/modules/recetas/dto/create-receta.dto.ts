@@ -4,6 +4,7 @@ import {
   IsString,
   IsDateString,
   IsOptional,
+  IsBoolean,
   MaxLength,
 } from 'class-validator';
 
@@ -28,4 +29,8 @@ export class CreateRecetaDto {
   @IsString()
   @IsOptional()
   contenido?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean = true;
 }

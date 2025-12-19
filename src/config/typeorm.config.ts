@@ -15,6 +15,7 @@ export const typeOrmConfig: TypeOrmModuleAsyncOptions = {
         dropSchema: false,
         logging: false,
         autoLoadEntities: true,
+        migrations: [__dirname + '/../database/migrations/*.ts'],
     }),
 };
 

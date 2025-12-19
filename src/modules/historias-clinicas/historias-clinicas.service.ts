@@ -27,7 +27,7 @@ export class HistoriasClinicasService {
   ): Promise<HistoriaClinica> {
     // Verificar que el paciente existe
     const paciente = await this.pacienteRepository.findOne({
-      where: { idPaciente: createHistoriasClinicaDto.idPaciente },
+      where: { idPaciente: createHistoriasClinicaDto.idPaciente, isActive: true },
     });
 
     if (!paciente) {
@@ -38,7 +38,7 @@ export class HistoriasClinicasService {
 
     // Verificar si el paciente ya tiene una historia clínica
     const historiaExistente = await this.historiaClinicaRepository.findOne({
-      where: { idPaciente: createHistoriasClinicaDto.idPaciente },
+      where: { idPaciente: createHistoriasClinicaDto.idPaciente, isActive: true },
     });
 
     if (historiaExistente) {
@@ -71,6 +71,7 @@ export class HistoriasClinicasService {
 
   async findAll(): Promise<HistoriaClinica[]> {
     return await this.historiaClinicaRepository.find({
+      where: { isActive: true },
       relations: ['paciente', 'diagnosticos'],
       order: { idHistoriaClinica: 'DESC' },
     });
@@ -78,7 +79,7 @@ export class HistoriasClinicasService {
 
   async findOne(id: number): Promise<HistoriaClinica> {
     const historiaClinica = await this.historiaClinicaRepository.findOne({
-      where: { idHistoriaClinica: id },
+      where: { idHistoriaClinica: id, isActive: true },
       relations: ['paciente', 'diagnosticos', 'diagnosticos.medico'],
     });
 
@@ -93,7 +94,7 @@ export class HistoriasClinicasService {
 
   async findByPaciente(idPaciente: number): Promise<HistoriaClinica | null> {
     return await this.historiaClinicaRepository.findOne({
-      where: { idPaciente },
+      where: { idPaciente, isActive: true },
       relations: ['paciente', 'diagnosticos', 'diagnosticos.medico'],
     });
   }
@@ -107,7 +108,7 @@ export class HistoriasClinicasService {
     // Si se actualiza el paciente, verificar que existe
     if (updateHistoriasClinicaDto.idPaciente) {
       const paciente = await this.pacienteRepository.findOne({
-        where: { idPaciente: updateHistoriasClinicaDto.idPaciente },
+        where: { idPaciente: updateHistoriasClinicaDto.idPaciente, isActive: true },
       });
 
       if (!paciente) {
@@ -120,6 +121,7 @@ export class HistoriasClinicasService {
       const historiaExistente = await this.historiaClinicaRepository.findOne({
         where: {
           idPaciente: updateHistoriasClinicaDto.idPaciente,
+          isActive: true,
         },
       });
 
@@ -145,7 +147,7 @@ export class HistoriasClinicasService {
 
   async remove(id: number): Promise<void> {
     const historiaClinica = await this.findOne(id);
-    await this.historiaClinicaRepository.remove(historiaClinica);
+    await this.historiaClinicaRepository.update(id, { isActive: false });
   }
 
   //Adicionales
@@ -155,7 +157,7 @@ export class HistoriasClinicasService {
 
     // Evitar búsquedas con 1 o 2 letras
     if (!clean || clean.length < 3) return [];
-    const searchTerm = `%${clean}%`; 
+    const searchTerm = `%${clean}%`;
     return await this.historiaClinicaRepository
       .createQueryBuilder('hc')
       .leftJoinAndSelect('hc.paciente', 'paciente')
@@ -164,6 +166,7 @@ export class HistoriasClinicasService {
         '(paciente.nombrePaciente ILIKE :term OR paciente.dniPaciente ILIKE :term)',
         { term: searchTerm }
       )
+      .andWhere('hc.isActive = :isActive', { isActive: true })
       .orderBy('hc.idHistoriaClinica', 'DESC')
       .getMany();
   }
@@ -171,7 +174,7 @@ export class HistoriasClinicasService {
   async findMedicoHistoriaClinica(idMedico: number): Promise<HistoriaClinica[]> {
 
     const medico = await this.medicoRepository.findOne({
-      where: { idMedico },
+      where: { idMedico, isActive: true },
     });
 
     if (!medico) {
@@ -186,6 +189,7 @@ export class HistoriasClinicasService {
       .leftJoinAndSelect('hc.diagnosticos', 'diagnosticos')
       .leftJoinAndSelect('diagnosticos.medico', 'medico')
       .where('diagnosticos.idMedico = :idMedico', { idMedico })
+      .andWhere('hc.isActive = :isActive', { isActive: true })
       .orderBy('hc.idHistoriaClinica', 'DESC')
       .getMany();
   }
@@ -199,7 +203,7 @@ export class HistoriasClinicasService {
 
     // Verificar que el médico existe
     const medico = await this.medicoRepository.findOne({
-      where: { idMedico },
+      where: { idMedico, isActive: true },
     });
 
     if (!medico) {
@@ -220,6 +224,7 @@ export class HistoriasClinicasService {
         { term: searchTerm }
       )
       .andWhere('diagnosticos.idMedico = :idMedico', { idMedico })
+      .andWhere('hc.isActive = :isActive', { isActive: true })
       .orderBy('hc.idHistoriaClinica', 'DESC')
       .getMany();
   }

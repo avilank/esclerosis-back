@@ -13,20 +13,20 @@ export class MedicosService {
   constructor(
     @InjectRepository(Medico)
     private readonly medicoRepository: Repository<Medico>,
-    
+
     @InjectRepository(Area)
     private readonly areaRepository: Repository<Area>,
-    
+
     @InjectRepository(Sede)
     private readonly sedeRepository: Repository<Sede>,
 
-  ) {}
+  ) { }
 
   async create(createMedicoDto: CreateMedicoDto) {
-    const area = await this.areaRepository.findOneBy({ idArea: createMedicoDto.idArea });
-    const sede = await this.sedeRepository.findOneBy({ idSede: createMedicoDto.idSede });
+    const area = await this.areaRepository.findOne({ where: { idArea: createMedicoDto.idArea, isActive: true } });
+    const sede = await this.sedeRepository.findOne({ where: { idSede: createMedicoDto.idSede, isActive: true } });
 
-    if (!area || !sede ) {
+    if (!area || !sede) {
       throw new BadRequestException('Area o sede no encontrada');
     }
 
@@ -38,15 +38,21 @@ export class MedicosService {
   }
 
   async findAll() {
-    return await this.medicoRepository.find();
+    return await this.medicoRepository.find({
+      where: { isActive: true },
+      relations: ['area', 'sede', 'usuario']
+    });
   }
 
   async findOne(id: number) {
-    return await this.medicoRepository.findOneBy({ idMedico: id });
+    return await this.medicoRepository.findOne({
+      where: { idMedico: id, isActive: true },
+      relations: ['area', 'sede', 'usuario']
+    });
   }
 
   async update(id: number, updateMedicoDto: UpdateMedicoDto) {
-    const medico = await this.medicoRepository.findOneBy({ idMedico: id });
+    const medico = await this.medicoRepository.findOne({ where: { idMedico: id, isActive: true } });
     if (!medico) {
       throw new BadRequestException('Medico no encontrado');
     }
@@ -57,10 +63,10 @@ export class MedicosService {
   }
 
   async remove(id: number) {
-    const medico = await this.medicoRepository.findOneBy({ idMedico: id });
+    const medico = await this.medicoRepository.findOne({ where: { idMedico: id, isActive: true } });
     if (!medico) {
       throw new BadRequestException('Medico no encontrado');
     }
-    return await this.medicoRepository.delete(id);
+    return await this.medicoRepository.update(id, { isActive: false });
   }
 }

@@ -3,7 +3,6 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import * as dto from '../dto/index';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CategoriaIndicador } from '../entities/categorias-indicadores.entity';
-import { IndicadorClinico } from '../entities/indicadores-clinicos.entity';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -11,8 +10,6 @@ export class CategoriasIndicadoresService {
   constructor(
     @InjectRepository(CategoriaIndicador)
     private readonly categoriaIndicadorRepository: Repository<CategoriaIndicador>,
-    @InjectRepository(IndicadorClinico)
-    private readonly indicadorClinicoRepository: Repository<IndicadorClinico>,
   ) {}
 
   async create(createCategoriasIndicadoreDto: dto.CreateCategoriasIndicadoresDto) {
@@ -21,26 +18,15 @@ export class CategoriasIndicadoresService {
   }
 
   async findAll() {
-    return await this.categoriaIndicadorRepository.find({
-      where: { isActive: true },
-    });
+    return await this.categoriaIndicadorRepository.find();
   }
 
   async findOne(id: number) {
-    const categoriaIndicador = await this.categoriaIndicadorRepository.findOne({ 
-      where: { idTipoIndicador: id, isActive: true } 
-    });
-    if (!categoriaIndicador) {
-      throw new NotFoundException('Categoria indicador no encontrada');
-    }
-    return categoriaIndicador;
+    return await this.categoriaIndicadorRepository.findOne({ where: { idTipoIndicador: id } });
   }
 
   async update(id: number, UpdateCategoriasIndicadoreDto: UpdateCategoriasIndicadoreDto) {
-    const categoriaIndicador = await this.categoriaIndicadorRepository.findOneBy({ 
-      idTipoIndicador: id,
-      isActive: true 
-    });
+    const categoriaIndicador = await this.categoriaIndicadorRepository.findOneBy({ idTipoIndicador: id });
     if (!categoriaIndicador) {
       throw new BadRequestException('Categoria indicador no encontrada');
     }
@@ -51,25 +37,10 @@ export class CategoriasIndicadoresService {
   }
 
   async remove(id: number) {
-    const categoriaIndicador = await this.categoriaIndicadorRepository.findOne({ 
-      where: { idTipoIndicador: id, isActive: true } 
-    });
+    const categoriaIndicador = await this.categoriaIndicadorRepository.findOne({ where: { idTipoIndicador: id } });
     if (!categoriaIndicador) {
       throw new NotFoundException('Categoria indicador no encontrada');
     }
-
-    // Borrado lógico de la categoría
-    categoriaIndicador.isActive = false;
-    await this.categoriaIndicadorRepository.save(categoriaIndicador);
-
-    // Borrado lógico de todos los indicadores relacionados
-    await this.indicadorClinicoRepository
-      .createQueryBuilder()
-      .update(IndicadorClinico)
-      .set({ isActive: false })
-      .where('idCategoriaIndicador = :id', { id })
-      .execute();
-
-    return { message: 'Categoria indicador y sus indicadores relacionados han sido borrados lógicamente' };
+    return await this.categoriaIndicadorRepository.delete(id);
   }
 }

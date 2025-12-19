@@ -4,6 +4,7 @@ import {
   IsInt,
   IsDateString,
   IsOptional,
+  IsBoolean,
   MaxLength,
 } from 'class-validator';
 
@@ -38,5 +39,9 @@ export class CreatePacienteDto {
   @IsDateString()
   @IsNotEmpty()
   fechaNacimiento: string;
+
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean = true;
 
 }

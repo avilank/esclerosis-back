@@ -4,6 +4,7 @@ import {
   IsString,
   IsDateString,
   IsOptional,
+  IsBoolean,
   MaxLength,
 } from 'class-validator';
 
@@ -20,4 +21,8 @@ export class CreateHistoriasClinicaDto {
   @IsOptional()
   @IsDateString()
   fechaIngreso?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean = true;
 }

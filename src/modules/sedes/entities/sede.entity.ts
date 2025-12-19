@@ -17,6 +17,9 @@ export class Sede {
   @Column({ name: 'direccion', length: 500, nullable: true })
   direccion: string;
 
+  @Column({ name: 'isActive', type: 'boolean', default: true })
+  isActive: boolean;
+
   @OneToMany(() => Medico, (medico) => medico.sede)
   medicos: Medico[];
 }

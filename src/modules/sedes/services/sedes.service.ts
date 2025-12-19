@@ -10,7 +10,7 @@ export class SedesService {
   constructor(
     @InjectRepository(Sede)
     private readonly sedeRepo: Repository<Sede>,
-  ) {}
+  ) { }
 
   async create(createSedeDto: CreateSedeDto) {
     const sede = this.sedeRepo.create(createSedeDto);
@@ -18,12 +18,12 @@ export class SedesService {
   }
 
   findAll() {
-    return this.sedeRepo.find();
+    return this.sedeRepo.find({ where: { isActive: true } });
   }
 
   async findOne(id: number) {
     // usar la propiedad real de la entidad: idSede
-    const sede = await this.sedeRepo.findOneBy({ idSede: id });
+    const sede = await this.sedeRepo.findOne({ where: { idSede: id, isActive: true } });
     if (!sede) throw new NotFoundException(`Sede ${id} no encontrada`);
     return sede;
   }
@@ -36,7 +36,7 @@ export class SedesService {
 
   async remove(id: number) {
     const sede = await this.findOne(id);
-    await this.sedeRepo.remove(sede);
+    await this.sedeRepo.update(id, { isActive: false });
     return { deleted: true };
   }
 }

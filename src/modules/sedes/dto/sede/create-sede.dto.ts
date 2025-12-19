@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, MaxLength } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsBoolean, MaxLength } from 'class-validator';
 
 export class CreateSedeDto {
   @IsString()
@@ -10,4 +10,8 @@ export class CreateSedeDto {
   @IsOptional()
   @MaxLength(500)
   direccion?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean = true;
 }
