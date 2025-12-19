@@ -20,9 +20,10 @@ export class IndicadoresClinicosService {
     const categoriaIndicador =
       await this.categoriaIndicadorRepository.findOneBy({
         idTipoIndicador: idCategoriaIndicador,
+        isActive: true,
       });
     if (!categoriaIndicador) {
-      throw new BadRequestException('Categoria de indicador no encontrada');
+      throw new BadRequestException('Categoria de indicador no encontrada o inactiva');
     }
     return await this.indicadorClinicoRepository.save({
       ...data,
@@ -32,6 +33,7 @@ export class IndicadoresClinicosService {
 
   async findAll() {
     return await this.indicadorClinicoRepository.find({
+      where: { isActive: true },
       relations: {
         categoriaIndicador: true,
       },
@@ -40,7 +42,7 @@ export class IndicadoresClinicosService {
 
   async findOne(id: number) {
     const indicadorClinico = await this.indicadorClinicoRepository.findOne({
-      where: { idIndicador: id },
+      where: { idIndicador: id, isActive: true },
       relations: ['categoriaIndicador'],
     });
 
@@ -56,7 +58,7 @@ export class IndicadoresClinicosService {
     updateIndicadoresClinicoDto: dto.UpdateIndicadoresClinicoDto,
   ) {
     const indicadorClinico = await this.indicadorClinicoRepository.findOne({
-      where: { idIndicador: id },
+      where: { idIndicador: id, isActive: true },
       relations: ['categoriaIndicador'],
     });
     if (!indicadorClinico) {
@@ -68,11 +70,12 @@ export class IndicadoresClinicosService {
     if (updateIndicadoresClinicoDto.idCategoriaIndicador !== undefined) {
       categoriaIndicador = await this.categoriaIndicadorRepository.findOneBy({
         idTipoIndicador: updateIndicadoresClinicoDto.idCategoriaIndicador,
+        isActive: true,
       });
     }
 
     if (!categoriaIndicador) {
-      throw new BadRequestException('Categoria de indicador no encontrada');
+      throw new BadRequestException('Categoria de indicador no encontrada o inactiva');
     }
 
     const { idCategoriaIndicador, ...data } = updateIndicadoresClinicoDto;
@@ -84,10 +87,16 @@ export class IndicadoresClinicosService {
   }
 
   async remove(id: number) {
-    const indicadorClinico = await this.indicadorClinicoRepository.findOneBy({ idIndicador: id });
+    const indicadorClinico = await this.indicadorClinicoRepository.findOneBy({ 
+      idIndicador: id,
+      isActive: true 
+    });
     if (!indicadorClinico) {
       throw new BadRequestException('Indicador clinico no encontrado');
     }
-    return this.indicadorClinicoRepository.delete(id);
+    
+    // Borrado lógico del indicador (sin afectar la categoría)
+    indicadorClinico.isActive = false;
+    return await this.indicadorClinicoRepository.save(indicadorClinico);
   }
 }
