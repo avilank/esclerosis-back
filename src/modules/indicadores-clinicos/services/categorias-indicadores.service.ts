@@ -10,7 +10,7 @@ export class CategoriasIndicadoresService {
   constructor(
     @InjectRepository(CategoriaIndicador)
     private readonly categoriaIndicadorRepository: Repository<CategoriaIndicador>,
-  ) {}
+  ) { }
 
   async create(createCategoriasIndicadoreDto: dto.CreateCategoriasIndicadoresDto) {
     const categoriaIndicador = this.categoriaIndicadorRepository.create(createCategoriasIndicadoreDto);
@@ -18,15 +18,15 @@ export class CategoriasIndicadoresService {
   }
 
   async findAll() {
-    return await this.categoriaIndicadorRepository.find();
+    return await this.categoriaIndicadorRepository.find({ where: { isActive: true } });
   }
 
   async findOne(id: number) {
-    return await this.categoriaIndicadorRepository.findOne({ where: { idTipoIndicador: id } });
+    return await this.categoriaIndicadorRepository.findOne({ where: { idTipoIndicador: id, isActive: true } });
   }
 
   async update(id: number, UpdateCategoriasIndicadoreDto: UpdateCategoriasIndicadoreDto) {
-    const categoriaIndicador = await this.categoriaIndicadorRepository.findOneBy({ idTipoIndicador: id });
+    const categoriaIndicador = await this.categoriaIndicadorRepository.findOne({ where: { idTipoIndicador: id, isActive: true } });
     if (!categoriaIndicador) {
       throw new BadRequestException('Categoria indicador no encontrada');
     }
@@ -37,10 +37,10 @@ export class CategoriasIndicadoresService {
   }
 
   async remove(id: number) {
-    const categoriaIndicador = await this.categoriaIndicadorRepository.findOne({ where: { idTipoIndicador: id } });
+    const categoriaIndicador = await this.categoriaIndicadorRepository.findOne({ where: { idTipoIndicador: id, isActive: true } });
     if (!categoriaIndicador) {
       throw new NotFoundException('Categoria indicador no encontrada');
     }
-    return await this.categoriaIndicadorRepository.delete(id);
+    return await this.categoriaIndicadorRepository.update(id, { isActive: false });
   }
 }

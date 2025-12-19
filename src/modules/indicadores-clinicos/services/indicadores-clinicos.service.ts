@@ -18,8 +18,8 @@ export class IndicadoresClinicosService {
   async create(createIndicadoresClinicoDto: dto.CreateIndicadoresClinicoDto) {
     const { idCategoriaIndicador, ...data } = createIndicadoresClinicoDto;
     const categoriaIndicador =
-      await this.categoriaIndicadorRepository.findOneBy({
-        idTipoIndicador: idCategoriaIndicador,
+      await this.categoriaIndicadorRepository.findOne({
+        where: { idTipoIndicador: idCategoriaIndicador, isActive: true },
       });
     if (!categoriaIndicador) {
       throw new BadRequestException('Categoria de indicador no encontrada');
@@ -67,8 +67,8 @@ export class IndicadoresClinicosService {
     let categoriaIndicador: CategoriaIndicador | null =
       indicadorClinico.categoriaIndicador;
     if (updateIndicadoresClinicoDto.idCategoriaIndicador !== undefined) {
-      categoriaIndicador = await this.categoriaIndicadorRepository.findOneBy({
-        idTipoIndicador: updateIndicadoresClinicoDto.idCategoriaIndicador,
+      categoriaIndicador = await this.categoriaIndicadorRepository.findOne({
+        where: { idTipoIndicador: updateIndicadoresClinicoDto.idCategoriaIndicador, isActive: true },
       });
     }
 
