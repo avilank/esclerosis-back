@@ -16,10 +16,10 @@ export class RecetasService {
     private readonly diagnosticoRepository: Repository<Diagnostico>,
     @InjectRepository(Tratamiento)
     private readonly tratamientoRepository: Repository<Tratamiento>,
-  ) {}
+  ) { }
   async create(createRecetaDto: CreateRecetaDto) {
-    const diagnostico = await this.diagnosticoRepository.findOneBy({ idDiagnostico: createRecetaDto.idDiagnostico });
-    const tratamiento = await this.tratamientoRepository.findOneBy({ idTratamiento: createRecetaDto.idTratamiento });
+    const diagnostico = await this.diagnosticoRepository.findOne({ where: { idDiagnostico: createRecetaDto.idDiagnostico, isActive: true } });
+    const tratamiento = await this.tratamientoRepository.findOne({ where: { idTratamiento: createRecetaDto.idTratamiento, isActive: true } });
     if (!diagnostico || !tratamiento) {
       throw new BadRequestException('Diagnostico o tratamiento no encontrado');
     }
@@ -31,9 +31,10 @@ export class RecetasService {
   }
 
   async findAll() {
-    const diagnosticos = await this.diagnosticoRepository.find();
-    const tratamientos = await this.tratamientoRepository.find();
+    const diagnosticos = await this.diagnosticoRepository.find({ where: { isActive: true } });
+    const tratamientos = await this.tratamientoRepository.find({ where: { isActive: true } });
     return await this.recetaRepository.find({
+      where: { isActive: true },
       relations: {
         diagnostico: true,
         tratamiento: true,
@@ -43,27 +44,27 @@ export class RecetasService {
 
   async findOne(id: number) {
     const receta = await this.recetaRepository.findOne({
-        where: { idReceta: id },
-        relations: ['diagnostico', 'tratamiento'],
-      });
-    
-      if (!receta) {
-        throw new BadRequestException('Receta no encontrada');
-      }
-    
-      return receta;
+      where: { idReceta: id, isActive: true },
+      relations: ['diagnostico', 'tratamiento'],
+    });
+
+    if (!receta) {
+      throw new BadRequestException('Receta no encontrada');
+    }
+
+    return receta;
   }
 
   async update(id: number, updateRecetaDto: UpdateRecetaDto) {
-    const receta = await this.recetaRepository.findOneBy({ idReceta: id });
+    const receta = await this.recetaRepository.findOne({ where: { idReceta: id, isActive: true } });
     if (!receta) {
       throw new BadRequestException('Receta no encontrada');
     }
 
     // Si se actualiza el tratamiento, verificar que existe
     if (updateRecetaDto.idTratamiento) {
-      const tratamiento = await this.tratamientoRepository.findOneBy({
-        idTratamiento: updateRecetaDto.idTratamiento,
+      const tratamiento = await this.tratamientoRepository.findOne({
+        where: { idTratamiento: updateRecetaDto.idTratamiento, isActive: true },
       });
       if (!tratamiento) {
         throw new BadRequestException('Tratamiento no encontrado');
@@ -77,10 +78,10 @@ export class RecetasService {
   }
 
   async remove(id: number) {
-    const receta = await this.recetaRepository.findOneBy({ idReceta: id });
+    const receta = await this.recetaRepository.findOne({ where: { idReceta: id, isActive: true } });
     if (!receta) {
       throw new BadRequestException('Receta no encontrada');
     }
-    return await this.recetaRepository.delete(id);
+    return await this.recetaRepository.update(id, { isActive: false });
   }
 }

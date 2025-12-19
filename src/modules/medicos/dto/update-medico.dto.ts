@@ -1,6 +1,6 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateMedicoDto } from './create-medico.dto';
-import { IsNotEmpty, IsNumber, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString, IsBoolean, MaxLength } from 'class-validator';
 
 export class UpdateMedicoDto extends PartialType(CreateMedicoDto) {
     @IsString()
@@ -21,5 +21,8 @@ export class UpdateMedicoDto extends PartialType(CreateMedicoDto) {
     @IsNotEmpty()
     @IsOptional()
     idSede?: number;
+
+    @IsBoolean()
+    @IsOptional()
+    isActive?: boolean;
 }
-    

@@ -39,6 +39,9 @@ export class Diagnostico {
   @Column({ name: 'es_diagnostico_inicial', type: 'boolean', default: false })
   es_diagnostico_inicial: boolean;
 
+  @Column({ name: 'isActive', type: 'boolean', default: true })
+  isActive: boolean;
+
   @ManyToOne(
     () => HistoriaClinica,
     (historiaClinica) => historiaClinica.diagnosticos,

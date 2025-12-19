@@ -27,6 +27,9 @@ export class HistoriaClinica {
   })
   fechaIngreso: Date;
 
+  @Column({ name: 'isActive', type: 'boolean', default: true })
+  isActive: boolean;
+
   @OneToOne(() => Paciente, (paciente) => paciente.historiaClinica)
   @JoinColumn({ name: 'idPaciente' })
   paciente: Paciente;

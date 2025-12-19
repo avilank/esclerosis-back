@@ -11,10 +11,10 @@ export class PacientesService {
   constructor(
     @InjectRepository(Paciente)
     private readonly pacienteRepository: Repository<Paciente>,
-  ) {}
-  
+  ) { }
+
   async create(createPacienteDto: CreatePacienteDto) {
-    const paciente = await this.pacienteRepository.findOneBy({ dniPaciente: createPacienteDto.dniPaciente });
+    const paciente = await this.pacienteRepository.findOne({ where: { dniPaciente: createPacienteDto.dniPaciente, isActive: true } });
     if (paciente) {
       throw new BadRequestException('Paciente ya existe');
     }
@@ -22,15 +22,21 @@ export class PacientesService {
   }
 
   async findAll() {
-    return await this.pacienteRepository.find();
+    return await this.pacienteRepository.find({
+      where: { isActive: true },
+      relations: ['usuario', 'historiaClinica']
+    });
   }
 
   async findOne(id: number) {
-    return await this.pacienteRepository.findOneBy({ idPaciente: id });
+    return await this.pacienteRepository.findOne({
+      where: { idPaciente: id, isActive: true },
+      relations: ['usuario', 'historiaClinica']
+    });
   }
 
   async update(id: number, updatePacienteDto: UpdatePacienteDto) {
-    const paciente = await this.pacienteRepository.findOneBy({ idPaciente: id });
+    const paciente = await this.pacienteRepository.findOne({ where: { idPaciente: id, isActive: true } });
     if (!paciente) {
       throw new BadRequestException('Paciente no encontrado');
     }
@@ -41,10 +47,10 @@ export class PacientesService {
   }
 
   async remove(id: number) {
-    const paciente = await this.pacienteRepository.findOneBy({ idPaciente: id });
+    const paciente = await this.pacienteRepository.findOne({ where: { idPaciente: id, isActive: true } });
     if (!paciente) {
       throw new BadRequestException('Paciente no encontrado');
     }
-    return await this.pacienteRepository.delete(id);
+    return await this.pacienteRepository.update(id, { isActive: false });
   }
 }

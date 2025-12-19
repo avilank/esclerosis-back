@@ -14,6 +14,9 @@ export class Area {
   @Column({ name: 'descripcion', length: 255 })
   descripcion: string;
 
+  @Column({ name: 'isActive', type: 'boolean', default: true })
+  isActive: boolean;
+
   @OneToMany(() => Medico, (medico) => medico.area)
   medicos: Medico[];
 }

@@ -38,4 +38,8 @@ export class CreateDiagnosticoDto {
   @IsBoolean()
   @IsOptional()
   es_diagnostico_inicial?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean = true;
 }

@@ -24,6 +24,9 @@ export class Medico {
   @Column({ name: 'genero', length: 20, nullable: true })
   genero: string;
 
+  @Column({ name: 'isActive', type: 'boolean', default: true })
+  isActive: boolean;
+
   @ManyToOne(() => Area, (area) => area.idArea, { eager: true })
   @JoinColumn({ name: 'idArea' })
   area: Area;
@@ -35,7 +38,7 @@ export class Medico {
   @OneToOne(() => Usuario, (usuario) => usuario.idUsuario, { eager: true })
   @JoinColumn({ name: 'idMedico' })
   usuario: Usuario;
-  
+
   @OneToMany(() => Diagnostico, (diagnostico) => diagnostico.medico)
   diagnosticos: Diagnostico[];
 }

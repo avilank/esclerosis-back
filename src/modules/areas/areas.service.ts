@@ -17,13 +17,13 @@ export class AreasService {
   }
 
   async findAll() {
-    const areas = await this.areaRepository.find();
+    const areas = await this.areaRepository.find({ where: { isActive: true } });
     return areas;
 
   }
 
   async findOne(id: number) {
-    const area = await this.areaRepository.findOne({ where: { idArea: id } });
+    const area = await this.areaRepository.findOne({ where: { idArea: id, isActive: true } });
     if (!area) {
       throw new NotFoundException('Area not found');
     }
@@ -31,7 +31,7 @@ export class AreasService {
   }
 
   async update(id: number, updateAreaDto: UpdateAreaDto) {
-    const area = await this.areaRepository.findOne({ where: { idArea: id } });
+    const area = await this.areaRepository.findOne({ where: { idArea: id, isActive: true } });
     if (!area) {
       throw new NotFoundException('Area not found');
     }
@@ -40,10 +40,10 @@ export class AreasService {
   }
 
   async remove(id: number) {
-    const area = await this.areaRepository.findOne({ where: { idArea: id } });
+    const area = await this.areaRepository.findOne({ where: { idArea: id, isActive: true } });
     if (!area) {
       throw new NotFoundException('Area not found');
     }
-    return this.areaRepository.delete(id);
+    return this.areaRepository.update(id, { isActive: false });
   }
 }

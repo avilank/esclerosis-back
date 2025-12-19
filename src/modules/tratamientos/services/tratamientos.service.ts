@@ -10,7 +10,7 @@ export class TratamientosService {
   constructor(
     @InjectRepository(Tratamiento)
     private readonly tratamientoRepo: Repository<Tratamiento>,
-  ) {}
+  ) { }
 
   async create(createTratamientoDto: CreateTratamientoDto) {
     const tratamiento = this.tratamientoRepo.create(createTratamientoDto);
@@ -18,11 +18,11 @@ export class TratamientosService {
   }
 
   findAll() {
-    return this.tratamientoRepo.find();
+    return this.tratamientoRepo.find({ where: { isActive: true } });
   }
 
   async findOne(id: number) {
-    const tratamiento = await this.tratamientoRepo.findOneBy({ idTratamiento: id });
+    const tratamiento = await this.tratamientoRepo.findOne({ where: { idTratamiento: id, isActive: true } });
     if (!tratamiento) throw new NotFoundException(`Tratamiento ${id} no encontrado`);
     return tratamiento;
   }
@@ -35,7 +35,7 @@ export class TratamientosService {
 
   async remove(id: number) {
     const tratamiento = await this.findOne(id);
-    await this.tratamientoRepo.remove(tratamiento);
+    await this.tratamientoRepo.update(id, { isActive: false });
     return { deleted: true };
   }
 }

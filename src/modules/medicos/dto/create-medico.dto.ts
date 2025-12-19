@@ -3,6 +3,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsInt,
+  IsBoolean,
   MaxLength,
 } from 'class-validator';
 
@@ -21,5 +22,9 @@ export class CreateMedicoDto {
 
   @IsInt()
   idSede: number;
+
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean = true;
 
 }
