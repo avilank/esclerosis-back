@@ -20,14 +20,17 @@ export class HistoriasClinicasService {
     private readonly pacienteRepository: Repository<Paciente>,
     @InjectRepository(Medico)
     private readonly medicoRepository: Repository<Medico>,
-  ) { }
+  ) {}
 
   async create(
     createHistoriasClinicaDto: CreateHistoriasClinicaDto,
   ): Promise<HistoriaClinica> {
     // Verificar que el paciente existe
     const paciente = await this.pacienteRepository.findOne({
-      where: { idPaciente: createHistoriasClinicaDto.idPaciente, isActive: true },
+      where: {
+        idPaciente: createHistoriasClinicaDto.idPaciente,
+        isActive: true,
+      },
     });
 
     if (!paciente) {
@@ -38,7 +41,10 @@ export class HistoriasClinicasService {
 
     // Verificar si el paciente ya tiene una historia clínica
     const historiaExistente = await this.historiaClinicaRepository.findOne({
-      where: { idPaciente: createHistoriasClinicaDto.idPaciente, isActive: true },
+      where: {
+        idPaciente: createHistoriasClinicaDto.idPaciente,
+        isActive: true,
+      },
     });
 
     if (historiaExistente) {
@@ -55,10 +61,20 @@ export class HistoriasClinicasService {
     const saved = await this.historiaClinicaRepository.save(historiaClinica);
 
     // Retornar con las relaciones cargadas
-    const historiaClinicaConRelaciones = await this.historiaClinicaRepository.findOne({
-      where: { idHistoriaClinica: saved.idHistoriaClinica },
-      relations: ['paciente', 'diagnosticos'],
-    });
+    const historiaClinicaConRelaciones =
+      await this.historiaClinicaRepository.findOne({
+        where: { idHistoriaClinica: saved.idHistoriaClinica },
+        relations: ['paciente', 'diagnosticos'],
+        relationLoadStrategy: 'query', // Para poder filtrar relaciones
+      });
+
+    // Filtrar diagnósticos activos
+    if (historiaClinicaConRelaciones?.diagnosticos) {
+      historiaClinicaConRelaciones.diagnosticos =
+        historiaClinicaConRelaciones.diagnosticos.filter(
+          (diagnostico) => diagnostico.isActive === true,
+        );
+    }
 
     if (!historiaClinicaConRelaciones) {
       throw new NotFoundException(
@@ -70,16 +86,30 @@ export class HistoriasClinicasService {
   }
 
   async findAll(): Promise<HistoriaClinica[]> {
-    return await this.historiaClinicaRepository.find({
+    const historias = await this.historiaClinicaRepository.find({
+      where: { isActive: true },
       relations: ['paciente', 'diagnosticos'],
+      relationLoadStrategy: 'query',
       order: { idHistoriaClinica: 'DESC' },
     });
+
+    // Filtrar diagnósticos activos
+    historias.forEach((historia) => {
+      if (historia.diagnosticos) {
+        historia.diagnosticos = historia.diagnosticos.filter(
+          (diagnostico) => diagnostico.isActive === true,
+        );
+      }
+    });
+
+    return historias;
   }
 
   async findOne(id: number): Promise<HistoriaClinica> {
     const historiaClinica = await this.historiaClinicaRepository.findOne({
       where: { idHistoriaClinica: id },
       relations: ['paciente', 'diagnosticos', 'diagnosticos.medico'],
+      relationLoadStrategy: 'query',
     });
 
     if (!historiaClinica) {
@@ -88,14 +118,30 @@ export class HistoriasClinicasService {
       );
     }
 
+    // Filtrar diagnósticos activos
+    if (historiaClinica.diagnosticos) {
+      historiaClinica.diagnosticos = historiaClinica.diagnosticos.filter(
+        (diagnostico) => diagnostico.isActive === true,
+      );
+    }
+
     return historiaClinica;
   }
 
   async findByPaciente(idPaciente: number): Promise<HistoriaClinica | null> {
-    return await this.historiaClinicaRepository.findOne({
+    const historiaClinica = await this.historiaClinicaRepository.findOne({
       where: { idPaciente, isActive: true },
       relations: ['paciente', 'diagnosticos', 'diagnosticos.medico'],
+      relationLoadStrategy: 'query',
     });
+
+    if (historiaClinica?.diagnosticos) {
+      historiaClinica.diagnosticos = historiaClinica.diagnosticos.filter(
+        (diagnostico) => diagnostico.isActive === true,
+      );
+    }
+
+    return historiaClinica;
   }
 
   async update(
@@ -107,7 +153,10 @@ export class HistoriasClinicasService {
     // Si se actualiza el paciente, verificar que existe
     if (updateHistoriasClinicaDto.idPaciente) {
       const paciente = await this.pacienteRepository.findOne({
-        where: { idPaciente: updateHistoriasClinicaDto.idPaciente, isActive: true },
+        where: {
+          idPaciente: updateHistoriasClinicaDto.idPaciente,
+          isActive: true,
+        },
       });
 
       if (!paciente) {
@@ -157,29 +206,34 @@ export class HistoriasClinicasService {
     // Evitar búsquedas con 1 o 2 letras
     if (!clean || clean.length < 3) return [];
     const searchTerm = `%${clean}%`;
-    return await this.historiaClinicaRepository
+
+    const historias = await this.historiaClinicaRepository
       .createQueryBuilder('hc')
       .leftJoinAndSelect('hc.paciente', 'paciente')
       .leftJoinAndSelect('hc.diagnosticos', 'diagnosticos')
       .where(
         '(paciente.nombrePaciente ILIKE :term OR paciente.dniPaciente ILIKE :term)',
-        { term: searchTerm }
+        { term: searchTerm },
       )
       .andWhere('hc.isActive = :isActive', { isActive: true })
+      .andWhere('diagnosticos.isActive = :diagnosticoActive', {
+        diagnosticoActive: true,
+      })
       .orderBy('hc.idHistoriaClinica', 'DESC')
       .getMany();
+
+    return historias;
   }
 
-  async findMedicoHistoriaClinica(idMedico: number): Promise<HistoriaClinica[]> {
-
+  async findMedicoHistoriaClinica(
+    idMedico: number,
+  ): Promise<HistoriaClinica[]> {
     const medico = await this.medicoRepository.findOne({
       where: { idMedico, isActive: true },
     });
 
     if (!medico) {
-      throw new NotFoundException(
-        `Médico con ID ${idMedico} no encontrado`,
-      );
+      throw new NotFoundException(`Médico con ID ${idMedico} no encontrado`);
     }
 
     return await this.historiaClinicaRepository
@@ -189,12 +243,18 @@ export class HistoriasClinicasService {
       .leftJoinAndSelect('diagnosticos.medico', 'medico')
       .where('diagnosticos.idMedico = :idMedico', { idMedico })
       .andWhere('hc.isActive = :isActive', { isActive: true })
+      .andWhere('diagnosticos.isActive = :diagnosticoActive', {
+        diagnosticoActive: true,
+      })
       .orderBy('hc.idHistoriaClinica', 'DESC')
       .getMany();
   }
 
   // Búsqueda de historias clínicas por nombre o dni del paciente, filtradas por médico
-  async searchByMedico(term: string, idMedico: number): Promise<HistoriaClinica[]> {
+  async searchByMedico(
+    term: string,
+    idMedico: number,
+  ): Promise<HistoriaClinica[]> {
     const clean = term?.trim();
 
     // Evitar búsquedas con 1 o 2 letras
@@ -206,9 +266,7 @@ export class HistoriasClinicasService {
     });
 
     if (!medico) {
-      throw new NotFoundException(
-        `Médico con ID ${idMedico} no encontrado`,
-      );
+      throw new NotFoundException(`Médico con ID ${idMedico} no encontrado`);
     }
 
     const searchTerm = `%${clean}%`;
@@ -220,12 +278,14 @@ export class HistoriasClinicasService {
       .leftJoinAndSelect('diagnosticos.medico', 'medico')
       .where(
         '(paciente.nombrePaciente ILIKE :term OR paciente.dniPaciente ILIKE :term)',
-        { term: searchTerm }
+        { term: searchTerm },
       )
       .andWhere('diagnosticos.idMedico = :idMedico', { idMedico })
       .andWhere('hc.isActive = :isActive', { isActive: true })
+      .andWhere('diagnosticos.isActive = :diagnosticoActive', {
+        diagnosticoActive: true,
+      })
       .orderBy('hc.idHistoriaClinica', 'DESC')
       .getMany();
   }
-
 }

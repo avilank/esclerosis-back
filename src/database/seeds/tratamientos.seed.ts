@@ -5,7 +5,8 @@ import { Receta } from 'src/modules/recetas/entities/receta.entity';
 const tratamientos = [
   {
     nombre: 'Interferones beta (IFN beta-1a, beta-1b, pegilado) - SC/IM',
-    descripcion: 'Interferones beta - administración subcutánea o intramuscular',
+    descripcion:
+      'Interferones beta - administración subcutánea o intramuscular',
     bloqueado: true,
   },
   {
@@ -86,4 +87,3 @@ export async function seedTratamientos(dataSource: DataSource) {
   await tratamientoRepo.save(tratamientos);
   console.log(`💊 ${tratamientos.length} tratamientos creados (bloqueados)`);
 }
-

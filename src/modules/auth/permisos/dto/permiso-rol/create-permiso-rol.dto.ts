@@ -11,4 +11,3 @@ export class CreatePermisoRolDto {
   @Min(1)
   idPermiso: number;
 }
-

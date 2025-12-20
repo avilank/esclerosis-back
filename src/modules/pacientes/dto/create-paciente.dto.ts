@@ -43,5 +43,4 @@ export class CreatePacienteDto {
   @IsBoolean()
   @IsOptional()
   isActive?: boolean = true;
-
 }

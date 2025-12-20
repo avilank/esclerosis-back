@@ -1,11 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { IndicadoresClinicosService } from '../services/indicadores-clinicos.service';
 import { CreateIndicadoresClinicoDto } from '../dto/indicadores-clinicos/create-indicadores-clinicos.dto';
 import { UpdateIndicadoresClinicoDto } from '../dto/indicadores-clinicos/update-indicadores-clinico.dto';
 
 @Controller('indicadores-clinicos')
 export class IndicadoresClinicosController {
-  constructor(private readonly indicadoresClinicosService: IndicadoresClinicosService) { }
+  constructor(
+    private readonly indicadoresClinicosService: IndicadoresClinicosService,
+  ) {}
 
   @Post()
   create(@Body() createIndicadoresClinicoDto: CreateIndicadoresClinicoDto) {
@@ -23,8 +33,14 @@ export class IndicadoresClinicosController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateIndicadoresClinicoDto: UpdateIndicadoresClinicoDto) {
-    return this.indicadoresClinicosService.update(+id, updateIndicadoresClinicoDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateIndicadoresClinicoDto: UpdateIndicadoresClinicoDto,
+  ) {
+    return this.indicadoresClinicosService.update(
+      +id,
+      updateIndicadoresClinicoDto,
+    );
   }
 
   @Delete(':id')

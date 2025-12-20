@@ -1,7 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Diagnostico } from 'src/modules/models/models';
@@ -21,10 +18,15 @@ export class DiagnosticosService {
     private readonly medicoRepository: Repository<Medico>,
   ) { }
 
-  async create(createDiagnosticoDto: CreateDiagnosticoDto): Promise<Diagnostico> {
+  async create(
+    createDiagnosticoDto: CreateDiagnosticoDto,
+  ): Promise<Diagnostico> {
     // Verificar que la historia clínica existe
     const historiaClinica = await this.historiaClinicaRepository.findOne({
-      where: { idHistoriaClinica: createDiagnosticoDto.idhistoriaClinica, isActive: true },
+      where: {
+        idHistoriaClinica: createDiagnosticoDto.idhistoriaClinica,
+        isActive: true,
+      },
     });
 
     if (!historiaClinica) {
@@ -78,36 +80,109 @@ export class DiagnosticosService {
   }
 
   async findAll(): Promise<Diagnostico[]> {
-    return await this.diagnosticoRepository.find({
-      where: { isActive: true },
-      relations: [
+    return await this.diagnosticoRepository
+      .createQueryBuilder('diagnostico')
+      .leftJoinAndSelect(
+        'diagnostico.historiaClinica',
         'historiaClinica',
+        'historiaClinica.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect(
         'historiaClinica.paciente',
+        'paciente',
+        'paciente.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect(
+        'diagnostico.medico',
         'medico',
+        'medico.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect(
+        'diagnostico.recetas',
         'recetas',
+        'recetas.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect(
         'recetas.tratamiento',
-        'IndicadoresClinicos',
-        'IndicadoresClinicos.indicadorClinico',
-        'IndicadoresClinicos.indicadorClinico.categoriaIndicador',
-      ],
-      order: { fechaDiagnostico: 'DESC' },
-    });
+        'tratamiento',
+        'tratamiento.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect(
+        'diagnostico.IndicadoresClinicos',
+        'indicadoresClinicos',
+      )
+      .leftJoinAndSelect(
+        'indicadoresClinicos.indicadorClinico',
+        'indicadorClinico',
+        'indicadorClinico.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect(
+        'indicadorClinico.categoriaIndicador',
+        'categoriaIndicador',
+      )
+      .where('diagnostico.isActive = :isActive', { isActive: true })
+      .orderBy('diagnostico.fechaDiagnostico', 'DESC')
+      .getMany();
   }
 
   async findOne(id: number): Promise<Diagnostico> {
-    const diagnostico = await this.diagnosticoRepository.findOne({
-      where: { idDiagnostico: id, isActive: true },
-      relations: [
+    const diagnostico = await this.diagnosticoRepository
+      .createQueryBuilder('diagnostico')
+      .leftJoinAndSelect(
+        'diagnostico.historiaClinica',
         'historiaClinica',
+        'historiaClinica.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect(
         'historiaClinica.paciente',
+        'paciente',
+        'paciente.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect(
+        'diagnostico.medico',
         'medico',
+        'medico.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect(
+        'diagnostico.recetas',
         'recetas',
+        'recetas.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect(
         'recetas.tratamiento',
-        'IndicadoresClinicos',
-        'IndicadoresClinicos.indicadorClinico',
-        'IndicadoresClinicos.indicadorClinico.categoriaIndicador',
-      ],
-    });
+        'tratamiento',
+        'tratamiento.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect(
+        'diagnostico.IndicadoresClinicos',
+        'indicadoresClinicos',
+      )
+      .leftJoinAndSelect(
+        'indicadoresClinicos.indicadorClinico',
+        'indicadorClinico',
+        'indicadorClinico.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect(
+        'indicadorClinico.categoriaIndicador',
+        'categoriaIndicador',
+      )
+      .where(
+        'diagnostico.idDiagnostico = :id AND diagnostico.isActive = :isActive',
+        { id, isActive: true },
+      )
+      .getOne();
 
     if (!diagnostico) {
       throw new NotFoundException(`Diagnóstico con ID ${id} no encontrado`);
@@ -116,63 +191,162 @@ export class DiagnosticosService {
     return diagnostico;
   }
 
-  async findByHistoriaClinica(idHistoriaClinica: number): Promise<Diagnostico[]> {
-    return await this.diagnosticoRepository.find({
-      where: { idhistoriaClinica: idHistoriaClinica, isActive: true },
-      relations: [
+  async findByHistoriaClinica(
+    idHistoriaClinica: number,
+  ): Promise<Diagnostico[]> {
+    return await this.diagnosticoRepository
+      .createQueryBuilder('diagnostico')
+      .leftJoinAndSelect(
+        'diagnostico.medico',
         'medico',
+        'medico.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect(
+        'diagnostico.recetas',
         'recetas',
+        'recetas.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect(
         'recetas.tratamiento',
-        'IndicadoresClinicos',
-        'IndicadoresClinicos.indicadorClinico',
-        'IndicadoresClinicos.indicadorClinico.categoriaIndicador',
-      ],
-      order: { fechaDiagnostico: 'DESC' },
-    });
+        'tratamiento',
+        'tratamiento.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect(
+        'diagnostico.IndicadoresClinicos',
+        'indicadoresClinicos',
+      )
+      .leftJoinAndSelect(
+        'indicadoresClinicos.indicadorClinico',
+        'indicadorClinico',
+        'indicadorClinico.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect(
+        'indicadorClinico.categoriaIndicador',
+        'categoriaIndicador',
+      )
+      .where(
+        'diagnostico.idhistoriaClinica = :idHistoriaClinica AND diagnostico.isActive = :isActive',
+        { idHistoriaClinica, isActive: true },
+      )
+      .orderBy('diagnostico.fechaDiagnostico', 'DESC')
+      .getMany();
   }
 
   async findByMedico(idMedico: number): Promise<Diagnostico[]> {
-    return await this.diagnosticoRepository.find({
-      where: { idMedico, isActive: true },
-      relations: [
+    return await this.diagnosticoRepository
+      .createQueryBuilder('diagnostico')
+      .leftJoinAndSelect(
+        'diagnostico.historiaClinica',
         'historiaClinica',
+        'historiaClinica.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect(
         'historiaClinica.paciente',
+        'paciente',
+        'paciente.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect(
+        'diagnostico.recetas',
         'recetas',
+        'recetas.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect(
         'recetas.tratamiento',
-        'IndicadoresClinicos',
-        'IndicadoresClinicos.indicadorClinico',
-        'IndicadoresClinicos.indicadorClinico.categoriaIndicador',
-      ],
-      order: { fechaDiagnostico: 'DESC' },
-    });
+        'tratamiento',
+        'tratamiento.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect(
+        'diagnostico.IndicadoresClinicos',
+        'indicadoresClinicos',
+      )
+      .leftJoinAndSelect(
+        'indicadoresClinicos.indicadorClinico',
+        'indicadorClinico',
+        'indicadorClinico.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect(
+        'indicadorClinico.categoriaIndicador',
+        'categoriaIndicador',
+      )
+      .where(
+        'diagnostico.idMedico = :idMedico AND diagnostico.isActive = :isActive',
+        { idMedico, isActive: true },
+      )
+      .orderBy('diagnostico.fechaDiagnostico', 'DESC')
+      .getMany();
   }
 
   async getStatsByMedico(idMedico: number) {
     // Traer diagnósticos igual que findByMedico
-    const diagnosticos = await this.diagnosticoRepository.find({
-      where: { idMedico, isActive: true },
-      relations: [
+    const diagnosticos = await this.diagnosticoRepository
+      .createQueryBuilder('diagnostico')
+      .leftJoinAndSelect(
+        'diagnostico.historiaClinica',
         'historiaClinica',
+        'historiaClinica.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect(
         'historiaClinica.paciente',
+        'paciente',
+        'paciente.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect(
+        'diagnostico.recetas',
         'recetas',
+        'recetas.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect(
         'recetas.tratamiento',
-        'IndicadoresClinicos',
-        'IndicadoresClinicos.indicadorClinico',
-      ],
-      order: { fechaDiagnostico: 'DESC' },
-    });
+        'tratamiento',
+        'tratamiento.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect(
+        'diagnostico.IndicadoresClinicos',
+        'indicadoresClinicos',
+      )
+      .leftJoinAndSelect(
+        'indicadoresClinicos.indicadorClinico',
+        'indicadorClinico',
+        'indicadorClinico.isActive = :isActive',
+        { isActive: true },
+      )
+      .where(
+        'diagnostico.idMedico = :idMedico AND diagnostico.isActive = :isActive',
+        { idMedico, isActive: true },
+      )
+      .orderBy('diagnostico.fechaDiagnostico', 'DESC')
+      .getMany();
 
     // Todos los diagnósticos del médico
     const total = diagnosticos.length;
 
     // Diagnósticos críticos
-    const criticos = diagnosticos.filter(d => d.estadoSalud === 'crítico').length;
+    const criticos = diagnosticos.filter(
+      (d) => d.estadoSalud === 'crítico',
+    ).length;
 
     // Diagnósticos críticos
-    const controlados = diagnosticos.filter(d => d.estadoSalud !== 'crítico').length;
+    const controlados = diagnosticos.filter(
+      (d) => d.estadoSalud !== 'crítico',
+    ).length;
 
     // Diagnósticos iniciales
-    const iniciales = diagnosticos.filter(d => d.es_diagnostico_inicial).length;
+    const iniciales = diagnosticos.filter(
+      (d) => d.es_diagnostico_inicial,
+    ).length;
 
     return {
       total,
@@ -199,15 +373,35 @@ export class DiagnosticosService {
 
     // Traer todos los diagnósticos del paciente ordenados por fecha descendente
     // Incluir recetas y tratamiento de cada receta
-    const diagnosticos = await this.diagnosticoRepository.find({
-      where: { idhistoriaClinica: historiaClinica.idHistoriaClinica, isActive: true },
-      relations: [
+    const diagnosticos = await this.diagnosticoRepository
+      .createQueryBuilder('diagnostico')
+      .leftJoinAndSelect(
+        'diagnostico.recetas',
         'recetas',
+        'recetas.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect(
         'recetas.tratamiento',
+        'tratamiento',
+        'tratamiento.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect(
+        'diagnostico.medico',
         'medico',
-      ],
-      order: { fechaDiagnostico: 'DESC' },
-    });
+        'medico.isActive = :isActive',
+        { isActive: true },
+      )
+      .where(
+        'diagnostico.idhistoriaClinica = :idHistoriaClinica AND diagnostico.isActive = :isActive',
+        {
+          idHistoriaClinica: historiaClinica.idHistoriaClinica,
+          isActive: true,
+        },
+      )
+      .orderBy('diagnostico.fechaDiagnostico', 'DESC')
+      .getMany();
 
     // Total de diagnósticos
     const totalDiagnosticos = diagnosticos.length;
@@ -217,32 +411,55 @@ export class DiagnosticosService {
     const todasLasRecetas: Array<{ receta: any; fechaReceta: Date }> = [];
 
     for (const diagnostico of diagnosticos) {
-      const diagnosticoCompleto = await this.diagnosticoRepository.findOne({
-        where: { idDiagnostico: diagnostico.idDiagnostico, isActive: true },
-        relations: [
+      const diagnosticoCompleto = await this.diagnosticoRepository
+        .createQueryBuilder('diagnostico')
+        .leftJoinAndSelect(
+          'diagnostico.recetas',
           'recetas',
+          'recetas.isActive = :isActive',
+          { isActive: true },
+        )
+        .leftJoinAndSelect(
           'recetas.tratamiento',
-        ],
-      });
+          'tratamiento',
+          'tratamiento.isActive = :isActive',
+          { isActive: true },
+        )
+        .where(
+          'diagnostico.idDiagnostico = :idDiagnostico AND diagnostico.isActive = :isActive',
+          {
+            idDiagnostico: diagnostico.idDiagnostico,
+            isActive: true,
+          },
+        )
+        .getOne();
 
-      if (diagnosticoCompleto?.recetas && diagnosticoCompleto.recetas.length > 0) {
-        diagnosticoCompleto.recetas.forEach(receta => {
+      if (
+        diagnosticoCompleto?.recetas &&
+        diagnosticoCompleto.recetas.length > 0
+      ) {
+        diagnosticoCompleto.recetas.forEach((receta) => {
           todasLasRecetas.push({
             receta,
-            fechaReceta: receta.fechaReceta instanceof Date
-              ? receta.fechaReceta
-              : new Date(receta.fechaReceta),
+            fechaReceta:
+              receta.fechaReceta instanceof Date
+                ? receta.fechaReceta
+                : new Date(receta.fechaReceta),
           });
         });
       }
     }
 
     // Ordenar todas las recetas por fecha descendente y tomar la primera
-    todasLasRecetas.sort((a, b) =>
-      b.fechaReceta.getTime() - a.fechaReceta.getTime()
+    todasLasRecetas.sort(
+      (a, b) => b.fechaReceta.getTime() - a.fechaReceta.getTime(),
     );
 
-    let tratamientoActual: { nombre: string; contenido: string; fechaReceta: string } | null = null;
+    let tratamientoActual: {
+      nombre: string;
+      contenido: string;
+      fechaReceta: string;
+    } | null = null;
 
     if (todasLasRecetas.length > 0) {
       const ultimaReceta = todasLasRecetas[0].receta;
@@ -251,9 +468,10 @@ export class DiagnosticosService {
         tratamientoActual = {
           nombre: ultimaReceta.tratamiento.nombre,
           contenido: ultimaReceta.contenido || '',
-          fechaReceta: ultimaReceta.fechaReceta instanceof Date
-            ? ultimaReceta.fechaReceta.toISOString().split('T')[0]
-            : new Date(ultimaReceta.fechaReceta).toISOString().split('T')[0],
+          fechaReceta:
+            ultimaReceta.fechaReceta instanceof Date
+              ? ultimaReceta.fechaReceta.toISOString().split('T')[0]
+              : new Date(ultimaReceta.fechaReceta).toISOString().split('T')[0],
         };
       }
     }
@@ -264,8 +482,6 @@ export class DiagnosticosService {
     };
   }
 
-
-
   async update(
     id: number,
     updateDiagnosticoDto: UpdateDiagnosticoDto,
@@ -275,7 +491,10 @@ export class DiagnosticosService {
     // Si se actualiza la historia clínica, verificar que existe
     if (updateDiagnosticoDto.idhistoriaClinica) {
       const historiaClinica = await this.historiaClinicaRepository.findOne({
-        where: { idHistoriaClinica: updateDiagnosticoDto.idhistoriaClinica, isActive: true },
+        where: {
+          idHistoriaClinica: updateDiagnosticoDto.idhistoriaClinica,
+          isActive: true,
+        },
       });
 
       if (!historiaClinica) {

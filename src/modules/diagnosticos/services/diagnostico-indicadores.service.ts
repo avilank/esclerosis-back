@@ -15,27 +15,35 @@ export class DiagnosticoIndicadoresService {
     private readonly diagnosticoRepository: Repository<Diagnostico>,
     @InjectRepository(IndicadorClinico)
     private readonly indicadorClinicoRepository: Repository<IndicadorClinico>,
-  ) { }
+  ) {}
 
-  async create(createIndicadoresClinicoDiagnosticoDto: CreateDiagnosticoIndicadoresDto) {
-    const { idDiagnostico, idIndicador } = createIndicadoresClinicoDiagnosticoDto;
+  async create(
+    createIndicadoresClinicoDiagnosticoDto: CreateDiagnosticoIndicadoresDto,
+  ) {
+    const { idDiagnostico, idIndicador } =
+      createIndicadoresClinicoDiagnosticoDto;
 
-    const diagnostico = await this.diagnosticoRepository.findOneBy({ idDiagnostico });
+    const diagnostico = await this.diagnosticoRepository.findOneBy({
+      idDiagnostico,
+    });
     if (!diagnostico) {
       throw new BadRequestException('Diagnóstico no encontrado');
     }
 
-    const indicadorClinico = await this.indicadorClinicoRepository.findOneBy({ idIndicador });
+    const indicadorClinico = await this.indicadorClinicoRepository.findOneBy({
+      idIndicador,
+    });
     if (!indicadorClinico) {
       throw new BadRequestException('Indicador clínico no encontrado');
     }
 
-    const existeRelacion = await this.diagnosticoIndicadorClinicoRepository.findOne({
-      where: {
-        diagnostico: { idDiagnostico },
-        indicadorClinico: { idIndicador },
-      },
-    });
+    const existeRelacion =
+      await this.diagnosticoIndicadorClinicoRepository.findOne({
+        where: {
+          diagnostico: { idDiagnostico },
+          indicadorClinico: { idIndicador },
+        },
+      });
 
     if (existeRelacion) {
       throw new BadRequestException(
@@ -51,29 +59,63 @@ export class DiagnosticoIndicadoresService {
   }
 
   async findAll() {
-    return await this.diagnosticoIndicadorClinicoRepository.find({
-      relations: {
-        diagnostico: true,
-        indicadorClinico: true,
-      },
-    });
+    return await this.diagnosticoIndicadorClinicoRepository
+      .createQueryBuilder('diagnosticoIndicador')
+      .leftJoinAndSelect(
+        'diagnosticoIndicador.diagnostico',
+        'diagnostico',
+        'diagnostico.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect(
+        'diagnosticoIndicador.indicadorClinico',
+        'indicadorClinico',
+        'indicadorClinico.isActive = :isActive',
+        { isActive: true },
+      )
+      .getMany();
   }
 
   async findOne(id: number) {
-    const indicadorClinicoDiagnostico = await this.diagnosticoIndicadorClinicoRepository.findOne({
-      where: { idDiagnosticoIndicadorClinico: id },
-      relations: ['diagnostico', 'indicadorClinico'],
-    });
+    const indicadorClinicoDiagnostico =
+      await this.diagnosticoIndicadorClinicoRepository
+        .createQueryBuilder('diagnosticoIndicador')
+        .leftJoinAndSelect(
+          'diagnosticoIndicador.diagnostico',
+          'diagnostico',
+          'diagnostico.isActive = :isActive',
+          { isActive: true },
+        )
+        .leftJoinAndSelect(
+          'diagnosticoIndicador.indicadorClinico',
+          'indicadorClinico',
+          'indicadorClinico.isActive = :isActive',
+          { isActive: true },
+        )
+        .where('diagnosticoIndicador.idDiagnosticoIndicadorClinico = :id', {
+          id,
+        })
+        .getOne();
     if (!indicadorClinicoDiagnostico) {
-      throw new BadRequestException('Indicador clinico diagnostico no encontrado');
+      throw new BadRequestException(
+        'Indicador clinico diagnostico no encontrado',
+      );
     }
     return indicadorClinicoDiagnostico;
   }
 
-  async update(id: number, updateIndicadoresClinicoDiagnosticoDto: UpdateDiagnosticoIndicadoresDto) {
-    const indicadorClinicoDiagnostico = await this.diagnosticoIndicadorClinicoRepository.findOneBy({ idDiagnosticoIndicadorClinico: id });
+  async update(
+    id: number,
+    updateIndicadoresClinicoDiagnosticoDto: UpdateDiagnosticoIndicadoresDto,
+  ) {
+    const indicadorClinicoDiagnostico =
+      await this.diagnosticoIndicadorClinicoRepository.findOneBy({
+        idDiagnosticoIndicadorClinico: id,
+      });
     if (!indicadorClinicoDiagnostico) {
-      throw new BadRequestException('Indicador clinico diagnostico no encontrado');
+      throw new BadRequestException(
+        'Indicador clinico diagnostico no encontrado',
+      );
     }
     return this.diagnosticoIndicadorClinicoRepository.save({
       ...indicadorClinicoDiagnostico,
@@ -82,9 +124,14 @@ export class DiagnosticoIndicadoresService {
   }
 
   async remove(id: number) {
-    const indicadorClinicoDiagnostico = await this.diagnosticoIndicadorClinicoRepository.findOneBy({ idDiagnosticoIndicadorClinico: id });
+    const indicadorClinicoDiagnostico =
+      await this.diagnosticoIndicadorClinicoRepository.findOneBy({
+        idDiagnosticoIndicadorClinico: id,
+      });
     if (!indicadorClinicoDiagnostico) {
-      throw new BadRequestException('Indicador clinico diagnostico no encontrado');
+      throw new BadRequestException(
+        'Indicador clinico diagnostico no encontrado',
+      );
     }
     return this.diagnosticoIndicadorClinicoRepository.delete(id);
   }

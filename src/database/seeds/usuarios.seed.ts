@@ -51,17 +51,23 @@ export async function seedUsuarios(dataSource: DataSource) {
   const usuarios = await dataSource.manager.find(Usuario, {
     where: { username: In(usersData.map((u) => u.username)) },
   });
-  const userByUsername = Object.fromEntries(usuarios.map((u) => [u.username, u]));
+  const userByUsername = Object.fromEntries(
+    usuarios.map((u) => [u.username, u]),
+  );
 
   // 3. Soportes para médico (Área y Sede mínimas)
-  let savedArea = await dataSource.manager.findOneBy(Area, { descripcion: 'Neurología' });
+  let savedArea = await dataSource.manager.findOneBy(Area, {
+    descripcion: 'Neurología',
+  });
   if (!savedArea) {
     savedArea = await dataSource.manager.save(Area, {
       descripcion: 'Neurología',
     });
   }
 
-  let savedSede = await dataSource.manager.findOneBy(Sede, { nombre: 'Sede Central' });
+  let savedSede = await dataSource.manager.findOneBy(Sede, {
+    nombre: 'Sede Central',
+  });
   if (!savedSede) {
     savedSede = await dataSource.manager.save(Sede, {
       nombre: 'Sede Central',
@@ -108,4 +114,3 @@ export async function seedUsuarios(dataSource: DataSource) {
     );
   }
 }
-

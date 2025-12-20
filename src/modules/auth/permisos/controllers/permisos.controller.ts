@@ -36,10 +36,7 @@ export class PermisosController {
   }
 
   @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updatePermisoDto: UpdatePermisoDto,
-  ) {
+  update(@Param('id') id: string, @Body() updatePermisoDto: UpdatePermisoDto) {
     return this.permisosService.update(+id, updatePermisoDto);
   }
 

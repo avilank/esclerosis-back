@@ -1,5 +1,9 @@
 import { UpdateCategoriasIndicadoreDto } from './../dto/categoria-indicadores/update-categorias-indicadores.dto';
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import * as dto from '../dto/index';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CategoriaIndicador } from '../entities/categorias-indicadores.entity';
@@ -15,8 +19,12 @@ export class CategoriasIndicadoresService {
     private readonly indicadorClinicoRepository: Repository<IndicadorClinico>,
   ) {}
 
-  async create(createCategoriasIndicadoreDto: dto.CreateCategoriasIndicadoresDto) {
-    const categoriaIndicador = this.categoriaIndicadorRepository.create(createCategoriasIndicadoreDto);
+  async create(
+    createCategoriasIndicadoreDto: dto.CreateCategoriasIndicadoresDto,
+  ) {
+    const categoriaIndicador = this.categoriaIndicadorRepository.create(
+      createCategoriasIndicadoreDto,
+    );
     return await this.categoriaIndicadorRepository.save(categoriaIndicador);
   }
 
@@ -27,20 +35,19 @@ export class CategoriasIndicadoresService {
   }
 
   async findOne(id: number) {
-    const categoriaIndicador = await this.categoriaIndicadorRepository.findOne({ 
-      where: { idTipoIndicador: id, isActive: true } 
+    return await this.categoriaIndicadorRepository.findOne({
+      where: { idTipoIndicador: id },
     });
-    if (!categoriaIndicador) {
-      throw new NotFoundException('Categoria indicador no encontrada');
-    }
-    return categoriaIndicador;
   }
 
-  async update(id: number, UpdateCategoriasIndicadoreDto: UpdateCategoriasIndicadoreDto) {
-    const categoriaIndicador = await this.categoriaIndicadorRepository.findOneBy({ 
-      idTipoIndicador: id,
-      isActive: true,
-    });
+  async update(
+    id: number,
+    UpdateCategoriasIndicadoreDto: UpdateCategoriasIndicadoreDto,
+  ) {
+    const categoriaIndicador =
+      await this.categoriaIndicadorRepository.findOneBy({
+        idTipoIndicador: id,
+      });
     if (!categoriaIndicador) {
       throw new BadRequestException('Categoria indicador no encontrada');
     }
@@ -51,8 +58,8 @@ export class CategoriasIndicadoresService {
   }
 
   async remove(id: number) {
-    const categoriaIndicador = await this.categoriaIndicadorRepository.findOne({ 
-      where: { idTipoIndicador: id, isActive: true },
+    const categoriaIndicador = await this.categoriaIndicadorRepository.findOne({
+      where: { idTipoIndicador: id },
     });
     if (!categoriaIndicador) {
       throw new NotFoundException('Categoria indicador no encontrada');

@@ -16,7 +16,9 @@ export class PacientesService {
   ) { }
 
   async create(createPacienteDto: CreatePacienteDto) {
-    const paciente = await this.pacienteRepository.findOne({ where: { dniPaciente: createPacienteDto.dniPaciente, isActive: true } });
+    const paciente = await this.pacienteRepository.findOne({
+      where: { dniPaciente: createPacienteDto.dniPaciente, isActive: true },
+    });
     if (paciente) {
       throw new BadRequestException('Paciente ya existe');
     }
@@ -24,35 +26,40 @@ export class PacientesService {
   }
 
   async findAll() {
-    // Filtrar pacientes activos y que su usuario también esté activo
     return await this.pacienteRepository
       .createQueryBuilder('paciente')
       .leftJoinAndSelect('paciente.usuario', 'usuario')
-      .leftJoinAndSelect('paciente.historiaClinica', 'historiaClinica')
+      .leftJoinAndSelect(
+        'paciente.historiaClinica',
+        'historiaClinica',
+        'historiaClinica.isActive = :isActive',
+        { isActive: true },
+      )
       .where('paciente.isActive = :isActive', { isActive: true })
-      .andWhere('usuario.estado = :estado', { estado: true })
       .getMany();
   }
 
   async findOne(id: number) {
-    const paciente = await this.pacienteRepository
+    return await this.pacienteRepository
       .createQueryBuilder('paciente')
       .leftJoinAndSelect('paciente.usuario', 'usuario')
-      .leftJoinAndSelect('paciente.historiaClinica', 'historiaClinica')
-      .where('paciente.idPaciente = :id', { id })
-      .andWhere('paciente.isActive = :isActive', { isActive: true })
-      .andWhere('usuario.estado = :estado', { estado: true })
+      .leftJoinAndSelect(
+        'paciente.historiaClinica',
+        'historiaClinica',
+        'historiaClinica.isActive = :isActive',
+        { isActive: true },
+      )
+      .where('paciente.idPaciente = :id AND paciente.isActive = :isActive', {
+        id,
+        isActive: true,
+      })
       .getOne();
-    
-    if (!paciente) {
-      throw new BadRequestException('Paciente no encontrado');
-    }
-    
-    return paciente;
   }
 
   async update(id: number, updatePacienteDto: UpdatePacienteDto) {
-    const paciente = await this.pacienteRepository.findOne({ where: { idPaciente: id, isActive: true } });
+    const paciente = await this.pacienteRepository.findOne({
+      where: { idPaciente: id, isActive: true },
+    });
     if (!paciente) {
       throw new BadRequestException('Paciente no encontrado');
     }
@@ -63,7 +70,9 @@ export class PacientesService {
   }
 
   async remove(id: number) {
-    const paciente = await this.pacienteRepository.findOne({ where: { idPaciente: id, isActive: true } });
+    const paciente = await this.pacienteRepository.findOne({
+      where: { idPaciente: id, isActive: true },
+    });
     if (!paciente) {
       throw new BadRequestException('Paciente no encontrado');
     }

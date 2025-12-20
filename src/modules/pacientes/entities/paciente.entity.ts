@@ -33,7 +33,8 @@ export class Paciente {
   telefonoPaciente: string;
 
   @Column({
-    name: 'fechaNacimiento', type: 'date',
+    name: 'fechaNacimiento',
+    type: 'date',
   })
   fechaNacimiento: string;
 
@@ -44,7 +45,9 @@ export class Paciente {
   @JoinColumn({ name: 'idPaciente' })
   usuario: Usuario;
 
-  @OneToOne(() => HistoriaClinica, (historiaClinica) => historiaClinica.paciente)
+  @OneToOne(
+    () => HistoriaClinica,
+    (historiaClinica) => historiaClinica.paciente,
+  )
   historiaClinica: HistoriaClinica;
-
 }

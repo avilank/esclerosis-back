@@ -23,46 +23,45 @@ config();
 
 const baseConfig = databaseConfig() as DataSourceOptions;
 const dataSource = new DataSource({
-    ...baseConfig,
-    // autoLoadEntities no aplica en DataSource; se definen aquí
-    entities: [
-        CategoriaIndicador,
-        IndicadorClinico,
-        Diagnostico,
-        DiagnosticoIndicadorClinico,
-        HistoriaClinica,
-        Receta,
-        Rol,
-        Usuario,
-        Paciente,
-        Medico,
-        Area,
-        Sede,
-        Permiso,
-        PermisoRol,
-        Tratamiento,
-    ],
+  ...baseConfig,
+  // autoLoadEntities no aplica en DataSource; se definen aquí
+  entities: [
+    CategoriaIndicador,
+    IndicadorClinico,
+    Diagnostico,
+    DiagnosticoIndicadorClinico,
+    HistoriaClinica,
+    Receta,
+    Rol,
+    Usuario,
+    Paciente,
+    Medico,
+    Area,
+    Sede,
+    Permiso,
+    PermisoRol,
+    Tratamiento,
+  ],
 });
 
 async function runSeed() {
-    try {
-        console.log('🔌 Conectando a la base de datos...');
-        await dataSource.initialize();
-        console.log('✅ Conexión establecida');
+  try {
+    console.log('🔌 Conectando a la base de datos...');
+    await dataSource.initialize();
+    console.log('✅ Conexión establecida');
 
-        // Ejecuta los seeders necesarios
-        await seedIndicadoresClinicos(dataSource);
-        await seedUsuarios(dataSource);
+    // Ejecuta los seeders necesarios
+    await seedIndicadoresClinicos(dataSource);
+    await seedUsuarios(dataSource);
 
-        console.log('✅ Seeders ejecutados correctamente');
-        await dataSource.destroy();
-        process.exit(0);
-    } catch (error) {
-        console.error('❌ Error ejecutando seeders:', error);
-        await dataSource.destroy();
-        process.exit(1);
-    }
+    console.log('✅ Seeders ejecutados correctamente');
+    await dataSource.destroy();
+    process.exit(0);
+  } catch (error) {
+    console.error('❌ Error ejecutando seeders:', error);
+    await dataSource.destroy();
+    process.exit(1);
+  }
 }
 
 runSeed();
-

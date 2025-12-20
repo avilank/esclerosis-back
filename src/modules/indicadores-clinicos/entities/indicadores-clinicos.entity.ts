@@ -5,6 +5,8 @@ import {
   ManyToOne,
   OneToMany,
   JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { CategoriaIndicador } from './categorias-indicadores.entity';
 import { DiagnosticoIndicadorClinico } from 'src/modules/models/models';
@@ -14,7 +16,6 @@ import { IndicadorUnidad } from 'src/common/enums/indicador-unidad.enum';
 export class IndicadorClinico {
   @PrimaryGeneratedColumn({ name: 'idIndicador' })
   idIndicador: number;
-
 
   @Column({ name: 'nombre', length: 255 })
   nombre: string;
@@ -28,10 +29,8 @@ export class IndicadorClinico {
   @Column({ type: 'boolean', default: false })
   bloqueado: boolean;
 
-
   @Column({ type: 'boolean', default: true })
   isActive: boolean;
-
 
   @ManyToOne(
     () => CategoriaIndicador,
@@ -42,7 +41,14 @@ export class IndicadorClinico {
 
   @OneToMany(
     () => DiagnosticoIndicadorClinico,
-    (diagnosticoIndicadorClinico) => diagnosticoIndicadorClinico.indicadorClinico,
+    (diagnosticoIndicadorClinico) =>
+      diagnosticoIndicadorClinico.indicadorClinico,
   )
   indicadoresClinicosDiagnostico: DiagnosticoIndicadorClinico[];
+
+  @CreateDateColumn({ name: 'createdAt', type: 'timestamp' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updatedAt', type: 'timestamp' })
+  updatedAt: Date;
 }

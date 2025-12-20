@@ -1,15 +1,29 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { DiagnosticoIndicadoresService } from '../services/diagnostico-indicadores.service';
 import { CreateDiagnosticoIndicadoresDto } from '../dto/diagnostico-indicadores/create-diagnostico-indicadores.dto';
 import { UpdateDiagnosticoIndicadoresDto } from '../dto/diagnostico-indicadores/update-diagnostico-indicadores.dto';
 
 @Controller('diagnostico-indicadores')
 export class DiagnosticoIndicadoresController {
-  constructor(private readonly diagnosticoIndicadoresService: DiagnosticoIndicadoresService) { }
+  constructor(
+    private readonly diagnosticoIndicadoresService: DiagnosticoIndicadoresService,
+  ) {}
 
   @Post()
-  create(@Body() createDiagnosticoIndicadoresDto: CreateDiagnosticoIndicadoresDto) {
-    return this.diagnosticoIndicadoresService.create(createDiagnosticoIndicadoresDto);
+  create(
+    @Body() createDiagnosticoIndicadoresDto: CreateDiagnosticoIndicadoresDto,
+  ) {
+    return this.diagnosticoIndicadoresService.create(
+      createDiagnosticoIndicadoresDto,
+    );
   }
 
   @Get()
@@ -23,8 +37,14 @@ export class DiagnosticoIndicadoresController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateDiagnosticoIndicadoresDto: UpdateDiagnosticoIndicadoresDto) {
-    return this.diagnosticoIndicadoresService.update(+id, updateDiagnosticoIndicadoresDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateDiagnosticoIndicadoresDto: UpdateDiagnosticoIndicadoresDto,
+  ) {
+    return this.diagnosticoIndicadoresService.update(
+      +id,
+      updateDiagnosticoIndicadoresDto,
+    );
   }
 
   @Delete(':id')

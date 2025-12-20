@@ -4,7 +4,10 @@ import { ConfigModule } from '@nestjs/config';
 import databaseConfig from './config/database.config';
 import esclerosisdDatabaseConfig from './config/esclerosisd.database.config';
 import { jwtConfig, jwtConfigValues } from './config/jwt.config';
-import { typeOrmConfig, esclerosisdTypeOrmConfig } from './config/typeorm.config';
+import {
+  typeOrmConfig,
+  esclerosisdTypeOrmConfig,
+} from './config/typeorm.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { LoggingInterceptor } from './common/interceptors/logger.interceptor';
@@ -32,4 +35,4 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
     },
   ],
 })
-export class AppModule { }
+export class AppModule {}

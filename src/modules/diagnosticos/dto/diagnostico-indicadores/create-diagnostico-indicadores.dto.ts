@@ -1,13 +1,6 @@
-import {
-  IsNotEmpty,
-  IsInt,
-  IsDateString,
-  IsString,
-} from 'class-validator';
+import { IsNotEmpty, IsInt, IsDateString, IsString } from 'class-validator';
 
 export class CreateDiagnosticoIndicadoresDto {
-
-
   @IsInt()
   @IsNotEmpty()
   idDiagnostico: number;
@@ -23,5 +16,4 @@ export class CreateDiagnosticoIndicadoresDto {
   @IsDateString()
   @IsNotEmpty()
   fechaMedicion: Date;
-
 }

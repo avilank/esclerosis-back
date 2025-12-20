@@ -10,7 +10,7 @@ export class TratamientosService {
   constructor(
     @InjectRepository(Tratamiento)
     private readonly tratamientoRepo: Repository<Tratamiento>,
-  ) { }
+  ) {}
 
   async create(createTratamientoDto: CreateTratamientoDto) {
     const tratamiento = this.tratamientoRepo.create(createTratamientoDto);
@@ -22,8 +22,11 @@ export class TratamientosService {
   }
 
   async findOne(id: number) {
-    const tratamiento = await this.tratamientoRepo.findOne({ where: { idTratamiento: id, isActive: true } });
-    if (!tratamiento) throw new NotFoundException(`Tratamiento ${id} no encontrado`);
+    const tratamiento = await this.tratamientoRepo.findOne({
+      where: { idTratamiento: id, isActive: true },
+    });
+    if (!tratamiento)
+      throw new NotFoundException(`Tratamiento ${id} no encontrado`);
     return tratamiento;
   }
 

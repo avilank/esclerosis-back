@@ -28,7 +28,9 @@ export class SedesService {
 
   async findOne(id: number) {
     // usar la propiedad real de la entidad: idSede
-    const sede = await this.sedeRepo.findOneBy({ idSede: id, isActive: true });
+    const sede = await this.sedeRepo.findOne({
+      where: { idSede: id, isActive: true },
+    });
     if (!sede) throw new NotFoundException(`Sede ${id} no encontrada`);
     return sede;
   }

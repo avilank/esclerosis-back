@@ -162,7 +162,13 @@ export class AnalyticsEtlsService {
   }
 
   async cargarHechoRecetas(): Promise<void> {
-    const recetas = await this.recetaRepo.find({ relations: ['diagnostico', 'diagnostico.medico', 'diagnostico.medico.sede'] });
+    const recetas = await this.recetaRepo.find({
+      relations: [
+        'diagnostico',
+        'diagnostico.medico',
+        'diagnostico.medico.sede',
+      ],
+    });
 
     for (const r of recetas) {
       if (!r.fechaReceta) continue;
@@ -173,21 +179,29 @@ export class AnalyticsEtlsService {
       const dia = fecha.getUTCDate();
       const trimestre = Math.floor(fecha.getUTCMonth() / 3) + 1;
 
-      let dimTiempo = await this.dimTiempoRepo.findOne({ where: { anio, mes, dia } });
+      let dimTiempo = await this.dimTiempoRepo.findOne({
+        where: { anio, mes, dia },
+      });
       if (!dimTiempo) {
         dimTiempo = this.dimTiempoRepo.create({ anio, mes, dia, trimestre });
         dimTiempo = await this.dimTiempoRepo.save(dimTiempo);
       }
 
-      let dimModelo = await this.dimModeloRepo.findOne({ where: { nombreModelo: r.Modelo_IA } });
+      let dimModelo = await this.dimModeloRepo.findOne({
+        where: { nombreModelo: r.Modelo_IA },
+      });
       if (!dimModelo && r.Modelo_IA) {
-        dimModelo = await this.dimModeloRepo.save(this.dimModeloRepo.create({ nombreModelo: r.Modelo_IA }));
+        dimModelo = await this.dimModeloRepo.save(
+          this.dimModeloRepo.create({ nombreModelo: r.Modelo_IA }),
+        );
       }
 
       const sedeNombre = r.diagnostico?.medico?.sede?.nombre;
       let dimOrg: DimOrganizacion | null = null;
       if (sedeNombre) {
-        dimOrg = await this.dimOrganizacionRepo.findOne({ where: { nombreSede: sedeNombre } });
+        dimOrg = await this.dimOrganizacionRepo.findOne({
+          where: { nombreSede: sedeNombre },
+        });
         if (!dimOrg) {
           dimOrg = await this.dimOrganizacionRepo.save(
             this.dimOrganizacionRepo.create({ nombreSede: sedeNombre }),
@@ -198,10 +212,15 @@ export class AnalyticsEtlsService {
       const medicoNombre = r.diagnostico?.medico?.nombre;
       let dimMedico: DimMedico | null = null;
       if (medicoNombre) {
-        dimMedico = await this.dimMedicoRepo.findOne({ where: { nombre: medicoNombre } });
+        dimMedico = await this.dimMedicoRepo.findOne({
+          where: { nombre: medicoNombre },
+        });
         if (!dimMedico) {
           dimMedico = await this.dimMedicoRepo.save(
-            this.dimMedicoRepo.create({ nombre: medicoNombre, area: r.diagnostico?.medico?.area?.descripcion }),
+            this.dimMedicoRepo.create({
+              nombre: medicoNombre,
+              area: r.diagnostico?.medico?.area?.descripcion,
+            }),
           );
         }
       }
@@ -294,17 +313,23 @@ export class AnalyticsEtlsService {
 
   // Hechos - creacion
 
-  async createHechoReceta(data: DeepPartial<HechoRecetas>): Promise<HechoRecetas> {
+  async createHechoReceta(
+    data: DeepPartial<HechoRecetas>,
+  ): Promise<HechoRecetas> {
     const entity = this.hechoRecetasRepo.create(data);
     return this.hechoRecetasRepo.save(entity);
   }
 
-  async createHechoIndicador(data: DeepPartial<HechoIndicador>): Promise<HechoIndicador> {
+  async createHechoIndicador(
+    data: DeepPartial<HechoIndicador>,
+  ): Promise<HechoIndicador> {
     const entity = this.hechoIndicadorRepo.create(data);
     return this.hechoIndicadorRepo.save(entity);
   }
 
-  async createHechoPacientesEm(data: DeepPartial<HechoPacientesEM>): Promise<HechoPacientesEM> {
+  async createHechoPacientesEm(
+    data: DeepPartial<HechoPacientesEM>,
+  ): Promise<HechoPacientesEM> {
     const entity = this.hechoPacientesEmRepo.create(data);
     return this.hechoPacientesEmRepo.save(entity);
   }
@@ -318,7 +343,9 @@ export class AnalyticsEtlsService {
 
   // Dimensiones - creacion
 
-  async createDimPaciente(data: DeepPartial<DimPaciente>): Promise<DimPaciente> {
+  async createDimPaciente(
+    data: DeepPartial<DimPaciente>,
+  ): Promise<DimPaciente> {
     const entity = this.dimPacienteRepo.create(data);
     return this.dimPacienteRepo.save(entity);
   }
@@ -340,7 +367,9 @@ export class AnalyticsEtlsService {
     return this.dimTiempoRepo.save(entity);
   }
 
-  async createDimModeloIa(data: DeepPartial<DimModeloIA>): Promise<DimModeloIA> {
+  async createDimModeloIa(
+    data: DeepPartial<DimModeloIA>,
+  ): Promise<DimModeloIA> {
     const entity = this.dimModeloRepo.create(data);
     return this.dimModeloRepo.save(entity);
   }

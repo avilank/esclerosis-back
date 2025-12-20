@@ -1,7 +1,8 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class CreateIndicadoresClinicosUnidadEnum1765676835183
-  implements MigrationInterface {
+  implements MigrationInterface
+{
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Verificar si el tipo enum ya existe
     const enumExists = await queryRunner.query(`

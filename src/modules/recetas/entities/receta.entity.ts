@@ -33,6 +33,9 @@ export class Receta {
   @Column({ name: 'contenido', type: 'text', nullable: true })
   contenido: string;
 
+  @Column({ name: 'sustentacion', type: 'text', nullable: true })
+  sustentacion: string;
+
   @Column({ name: 'isActive', type: 'boolean', default: true })
   isActive: boolean;
 
