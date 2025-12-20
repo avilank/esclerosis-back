@@ -1,7 +1,8 @@
 import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm';
 
 export class AddTimestampsToDiagnosticoAndReceta1765611396455
-  implements MigrationInterface {
+  implements MigrationInterface
+{
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Agregar timestamps a la tabla diagnostico
     await queryRunner.addColumn(
@@ -74,11 +75,17 @@ export class AddTimestampsToDiagnosticoAndReceta1765611396455
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     // Eliminar triggers
-    await queryRunner.query(`DROP TRIGGER IF EXISTS update_receta_updated_at ON receta;`);
-    await queryRunner.query(`DROP TRIGGER IF EXISTS update_diagnostico_updated_at ON diagnostico;`);
+    await queryRunner.query(
+      `DROP TRIGGER IF EXISTS update_receta_updated_at ON receta;`,
+    );
+    await queryRunner.query(
+      `DROP TRIGGER IF EXISTS update_diagnostico_updated_at ON diagnostico;`,
+    );
 
     // Eliminar función
-    await queryRunner.query(`DROP FUNCTION IF EXISTS update_updated_at_column();`);
+    await queryRunner.query(
+      `DROP FUNCTION IF EXISTS update_updated_at_column();`,
+    );
 
     // Eliminar timestamps de la tabla receta
     await queryRunner.dropColumn('receta', 'updatedAt');
@@ -89,6 +96,3 @@ export class AddTimestampsToDiagnosticoAndReceta1765611396455
     await queryRunner.dropColumn('diagnostico', 'createdAt');
   }
 }
-
-
-

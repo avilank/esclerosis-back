@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ConflictException,
+} from '@nestjs/common';
 import { CreateUsuarioDto } from '../dto/usuario/create-usuario.dto';
 import { UpdateUsuarioDto } from '../dto/usuario/update-usuario.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -31,23 +36,27 @@ export class UsuariosService {
     private readonly sedeRepo: Repository<Sede>,
   ) {}
 
-  private async checkUniqueUsernameEmail(username?: string, email?: string, excludeId?: number) {
+  private async checkUniqueUsernameEmail(
+    username?: string,
+    email?: string,
+    excludeId?: number,
+  ) {
     if (!username && !email) return;
-    
+
     // Verificar username
     if (username) {
-      const existingByUsername = await this.usuarioRepo.findOne({ 
-        where: { username } 
+      const existingByUsername = await this.usuarioRepo.findOne({
+        where: { username },
       });
       if (existingByUsername && existingByUsername.idUsuario !== excludeId) {
         throw new ConflictException('Username ya en uso');
       }
     }
-    
+
     // Verificar email
     if (email) {
-      const existingByEmail = await this.usuarioRepo.findOne({ 
-        where: { email } 
+      const existingByEmail = await this.usuarioRepo.findOne({
+        where: { email },
       });
       if (existingByEmail && existingByEmail.idUsuario !== excludeId) {
         throw new ConflictException('Email ya en uso');
@@ -64,8 +73,11 @@ export class UsuariosService {
 
   //Crear usuario desde historia clinica
   async createUsuario(createUsuarioDto: CreateUsuarioDto) {
-    await this.checkUniqueUsernameEmail(createUsuarioDto.username, createUsuarioDto.email);
-    
+    await this.checkUniqueUsernameEmail(
+      createUsuarioDto.username,
+      createUsuarioDto.email,
+    );
+
     // Validar y obtener el rol
     let rol: Rol | null = null;
     if (createUsuarioDto.idRol) {
@@ -76,7 +88,6 @@ export class UsuariosService {
     const saltRounds = 10;
     const hashed = await bcrypt.hash(createUsuarioDto.password, saltRounds);
 
-    
     const usuario = this.usuarioRepo.create({
       username: createUsuarioDto.username,
       email: createUsuarioDto.email,
@@ -86,15 +97,21 @@ export class UsuariosService {
     });
     const usuarioGuardado = await this.usuarioRepo.save(usuario);
 
-    return await this.usuarioRepo.findOne({
-      where: { idUsuario: usuarioGuardado.idUsuario },
-      relations: ['rol'],
-    });
+    return await this.usuarioRepo
+      .createQueryBuilder('usuario')
+      .leftJoinAndSelect('usuario.rol', 'rol')
+      .where('usuario.idUsuario = :idUsuario', {
+        idUsuario: usuarioGuardado.idUsuario,
+      })
+      .getOne();
   }
 
   async create(createUsuarioDto: CreateUsuarioDto) {
-    await this.checkUniqueUsernameEmail(createUsuarioDto.username, createUsuarioDto.email);
-    
+    await this.checkUniqueUsernameEmail(
+      createUsuarioDto.username,
+      createUsuarioDto.email,
+    );
+
     // Validar y obtener el rol
     let rol: Rol | null = null;
     if (createUsuarioDto.idRol) {
@@ -116,11 +133,17 @@ export class UsuariosService {
     const usuarioGuardado = await this.usuarioRepo.save(usuario);
 
     if (rol && rol.nombre.toLowerCase() === 'paciente') {
-      if (!createUsuarioDto.dniPaciente || !createUsuarioDto.nombrePaciente || 
-          !createUsuarioDto.edadPaciente || !createUsuarioDto.generoPaciente || 
-          !createUsuarioDto.fechaNacimiento) {
+      if (
+        !createUsuarioDto.dniPaciente ||
+        !createUsuarioDto.nombrePaciente ||
+        !createUsuarioDto.edadPaciente ||
+        !createUsuarioDto.generoPaciente ||
+        !createUsuarioDto.fechaNacimiento
+      ) {
         await this.usuarioRepo.remove(usuarioGuardado);
-        throw new BadRequestException('Para crear un usuario paciente se requieren: dniPaciente, nombrePaciente, edadPaciente, generoPaciente y fechaNacimiento');
+        throw new BadRequestException(
+          'Para crear un usuario paciente se requieren: dniPaciente, nombrePaciente, edadPaciente, generoPaciente y fechaNacimiento',
+        );
       }
 
       // Verificar que no exista un paciente con el mismo DNI
@@ -154,17 +177,31 @@ export class UsuariosService {
     }
 
     // Si el rol es "Médico", crear médico
-    if (rol && (rol.nombre.toLowerCase() === 'médico' || rol.nombre.toLowerCase() === 'medico')) {
+    if (
+      rol &&
+      (rol.nombre.toLowerCase() === 'médico' ||
+        rol.nombre.toLowerCase() === 'medico')
+    ) {
       // Validar que se proporcionaron los datos del médico
-      if (!createUsuarioDto.nombreMedico || !createUsuarioDto.idArea || !createUsuarioDto.idSede) {
+      if (
+        !createUsuarioDto.nombreMedico ||
+        !createUsuarioDto.idArea ||
+        !createUsuarioDto.idSede
+      ) {
         // Si falta algún dato requerido, eliminar el usuario creado y lanzar error
         await this.usuarioRepo.remove(usuarioGuardado);
-        throw new BadRequestException('Para crear un usuario médico se requieren: nombreMedico, idArea e idSede');
+        throw new BadRequestException(
+          'Para crear un usuario médico se requieren: nombreMedico, idArea e idSede',
+        );
       }
 
       // Validar que el área y la sede existen
-      const area = await this.areaRepo.findOneBy({ idArea: createUsuarioDto.idArea });
-      const sede = await this.sedeRepo.findOneBy({ idSede: createUsuarioDto.idSede });
+      const area = await this.areaRepo.findOneBy({
+        idArea: createUsuarioDto.idArea,
+      });
+      const sede = await this.sedeRepo.findOneBy({
+        idSede: createUsuarioDto.idSede,
+      });
 
       if (!area || !sede) {
         await this.usuarioRepo.remove(usuarioGuardado);
@@ -183,21 +220,52 @@ export class UsuariosService {
     }
 
     // Retornar usuario con relaciones cargadas
-    return await this.usuarioRepo.findOne({
-      where: { idUsuario: usuarioGuardado.idUsuario },
-      relations: ['rol', 'paciente', 'medico'],
-    });
+    return await this.usuarioRepo
+      .createQueryBuilder('usuario')
+      .leftJoinAndSelect('usuario.rol', 'rol')
+      .leftJoinAndSelect(
+        'usuario.paciente',
+        'paciente',
+        'paciente.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect(
+        'usuario.medico',
+        'medico',
+        'medico.isActive = :isActive',
+        { isActive: true },
+      )
+      .where('usuario.idUsuario = :idUsuario', {
+        idUsuario: usuarioGuardado.idUsuario,
+      })
+      .getOne();
   }
 
   findAll() {
-    return this.usuarioRepo.find({ relations: ['rol'] });
+    return this.usuarioRepo
+      .createQueryBuilder('usuario')
+      .leftJoinAndSelect('usuario.rol', 'rol')
+      .getMany();
   }
 
   async findOne(id: number) {
-    const usuario = await this.usuarioRepo.findOne({
-      where: { idUsuario: id },
-      relations: ['rol', 'paciente', 'medico'],
-    });
+    const usuario = await this.usuarioRepo
+      .createQueryBuilder('usuario')
+      .leftJoinAndSelect('usuario.rol', 'rol')
+      .leftJoinAndSelect(
+        'usuario.paciente',
+        'paciente',
+        'paciente.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect(
+        'usuario.medico',
+        'medico',
+        'medico.isActive = :isActive',
+        { isActive: true },
+      )
+      .where('usuario.idUsuario = :id', { id })
+      .getOne();
     if (!usuario) throw new NotFoundException(`Usuario ${id} no encontrado`);
     return usuario;
   }
@@ -206,12 +274,21 @@ export class UsuariosService {
     const usuario = await this.findOne(id);
 
     // check uniqueness if username/email provided
-    await this.checkUniqueUsernameEmail(updateUsuarioDto.username, updateUsuarioDto.email, id);
+    await this.checkUniqueUsernameEmail(
+      updateUsuarioDto.username,
+      updateUsuarioDto.email,
+      id,
+    );
 
     // Validar que no se intente cambiar el rol si ya tiene uno asignado
-    if ((updateUsuarioDto as any).idRol !== undefined && usuario.idRol !== null) {
+    if (
+      (updateUsuarioDto as any).idRol !== undefined &&
+      usuario.idRol !== null
+    ) {
       if ((updateUsuarioDto as any).idRol !== usuario.idRol) {
-        throw new BadRequestException('No se puede cambiar el rol de un usuario');
+        throw new BadRequestException(
+          'No se puede cambiar el rol de un usuario',
+        );
       }
     }
 
@@ -219,12 +296,16 @@ export class UsuariosService {
     const rolActual = usuario.rol;
     const nombreRolActual = rolActual?.nombre?.toLowerCase() || '';
     const esPaciente = nombreRolActual === 'paciente';
-    const esMedico = nombreRolActual === 'médico' || nombreRolActual === 'medico';
+    const esMedico =
+      nombreRolActual === 'médico' || nombreRolActual === 'medico';
 
     // hash password if updated
     if (updateUsuarioDto.password) {
       const saltRounds = 10;
-      (updateUsuarioDto as any).password = await bcrypt.hash(updateUsuarioDto.password, saltRounds);
+      (updateUsuarioDto as any).password = await bcrypt.hash(
+        updateUsuarioDto.password,
+        saltRounds,
+      );
     }
 
     // Actualizar datos básicos del usuario (sin cambiar el rol)
@@ -241,10 +322,16 @@ export class UsuariosService {
     if (esPaciente) {
       if (!usuario.paciente) {
         // Si no tiene paciente pero es rol paciente, crear paciente e historia clínica
-        if (!updateUsuarioDto.dniPaciente || !updateUsuarioDto.nombrePaciente || 
-            !updateUsuarioDto.edadPaciente || !updateUsuarioDto.generoPaciente || 
-            !updateUsuarioDto.fechaNacimiento) {
-          throw new BadRequestException('Para crear un paciente se requieren: dniPaciente, nombrePaciente, edadPaciente, generoPaciente y fechaNacimiento');
+        if (
+          !updateUsuarioDto.dniPaciente ||
+          !updateUsuarioDto.nombrePaciente ||
+          !updateUsuarioDto.edadPaciente ||
+          !updateUsuarioDto.generoPaciente ||
+          !updateUsuarioDto.fechaNacimiento
+        ) {
+          throw new BadRequestException(
+            'Para crear un paciente se requieren: dniPaciente, nombrePaciente, edadPaciente, generoPaciente y fechaNacimiento',
+          );
         }
 
         // Verificar que no exista un paciente con el mismo DNI
@@ -281,17 +368,30 @@ export class UsuariosService {
       } else {
         // Actualizar paciente existente
         const pacienteActualizado = {
-          dniPaciente: updateUsuarioDto.dniPaciente ?? usuario.paciente.dniPaciente,
-          nombrePaciente: updateUsuarioDto.nombrePaciente ?? usuario.paciente.nombrePaciente,
-          edadPaciente: updateUsuarioDto.edadPaciente ?? usuario.paciente.edadPaciente,
-          generoPaciente: updateUsuarioDto.generoPaciente ?? usuario.paciente.generoPaciente,
-          direccionPaciente: updateUsuarioDto.direccionPaciente ?? usuario.paciente.direccionPaciente,
-          telefonoPaciente: updateUsuarioDto.telefonoPaciente ?? usuario.paciente.telefonoPaciente,
-          fechaNacimiento: updateUsuarioDto.fechaNacimiento ?? usuario.paciente.fechaNacimiento,
+          dniPaciente:
+            updateUsuarioDto.dniPaciente ?? usuario.paciente.dniPaciente,
+          nombrePaciente:
+            updateUsuarioDto.nombrePaciente ?? usuario.paciente.nombrePaciente,
+          edadPaciente:
+            updateUsuarioDto.edadPaciente ?? usuario.paciente.edadPaciente,
+          generoPaciente:
+            updateUsuarioDto.generoPaciente ?? usuario.paciente.generoPaciente,
+          direccionPaciente:
+            updateUsuarioDto.direccionPaciente ??
+            usuario.paciente.direccionPaciente,
+          telefonoPaciente:
+            updateUsuarioDto.telefonoPaciente ??
+            usuario.paciente.telefonoPaciente,
+          fechaNacimiento:
+            updateUsuarioDto.fechaNacimiento ??
+            usuario.paciente.fechaNacimiento,
         };
 
         // Verificar DNI único si se está actualizando
-        if (updateUsuarioDto.dniPaciente && updateUsuarioDto.dniPaciente !== usuario.paciente.dniPaciente) {
+        if (
+          updateUsuarioDto.dniPaciente &&
+          updateUsuarioDto.dniPaciente !== usuario.paciente.dniPaciente
+        ) {
           const pacienteExistente = await this.pacienteRepo.findOne({
             where: { dniPaciente: updateUsuarioDto.dniPaciente },
           });
@@ -309,13 +409,23 @@ export class UsuariosService {
     if (esMedico) {
       if (!usuario.medico) {
         // Si no tiene médico pero es rol médico, crear médico
-        if (!updateUsuarioDto.nombreMedico || !updateUsuarioDto.idArea || !updateUsuarioDto.idSede) {
-          throw new BadRequestException('Para crear un médico se requieren: nombreMedico, idArea e idSede');
+        if (
+          !updateUsuarioDto.nombreMedico ||
+          !updateUsuarioDto.idArea ||
+          !updateUsuarioDto.idSede
+        ) {
+          throw new BadRequestException(
+            'Para crear un médico se requieren: nombreMedico, idArea e idSede',
+          );
         }
 
         // Validar que el área y la sede existen
-        const area = await this.areaRepo.findOneBy({ idArea: updateUsuarioDto.idArea });
-        const sede = await this.sedeRepo.findOneBy({ idSede: updateUsuarioDto.idSede });
+        const area = await this.areaRepo.findOneBy({
+          idArea: updateUsuarioDto.idArea,
+        });
+        const sede = await this.sedeRepo.findOneBy({
+          idSede: updateUsuarioDto.idSede,
+        });
 
         if (!area || !sede) {
           throw new BadRequestException('Área o sede no encontrada');
@@ -352,10 +462,25 @@ export class UsuariosService {
     }
 
     // Retornar usuario con relaciones cargadas
-    return await this.usuarioRepo.findOne({
-      where: { idUsuario: usuarioActualizado.idUsuario },
-      relations: ['rol', 'paciente', 'medico'],
-    });
+    return await this.usuarioRepo
+      .createQueryBuilder('usuario')
+      .leftJoinAndSelect('usuario.rol', 'rol')
+      .leftJoinAndSelect(
+        'usuario.paciente',
+        'paciente',
+        'paciente.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect(
+        'usuario.medico',
+        'medico',
+        'medico.isActive = :isActive',
+        { isActive: true },
+      )
+      .where('usuario.idUsuario = :idUsuario', {
+        idUsuario: usuarioActualizado.idUsuario,
+      })
+      .getOne();
   }
 
   async remove(id: number) {

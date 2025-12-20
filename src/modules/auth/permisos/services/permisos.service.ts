@@ -18,7 +18,7 @@ export class PermisosService {
     private readonly permisoRepository: Repository<Permiso>,
     @InjectRepository(PermisoRol)
     private readonly permisoRolRepository: Repository<PermisoRol>,
-  ) { }
+  ) {}
 
   // CRUD de Permisos
   async create(createPermisoDto: CreatePermisoDto): Promise<Permiso> {
@@ -99,9 +99,7 @@ export class PermisosService {
     });
 
     if (permisoRolExistente) {
-      throw new ConflictException(
-        'Este permiso ya está asignado a este rol',
-      );
+      throw new ConflictException('Este permiso ya está asignado a este rol');
     }
 
     const permisoRol = this.permisoRolRepository.create(createPermisoRolDto);
@@ -140,9 +138,7 @@ export class PermisosService {
     });
 
     if (!permisoRol) {
-      throw new NotFoundException(
-        'La asignación de permiso a rol no existe',
-      );
+      throw new NotFoundException('La asignación de permiso a rol no existe');
     }
 
     await this.permisoRolRepository.remove(permisoRol);

@@ -9,7 +9,6 @@ import {
 import { Diagnostico } from './diagnostico.entity';
 import { IndicadorClinico } from 'src/modules/models/models';
 
-
 @Unique(['diagnostico', 'indicadorClinico'])
 @Entity('diagnostico_indicador_clinico')
 export class DiagnosticoIndicadorClinico {
@@ -35,6 +34,4 @@ export class DiagnosticoIndicadorClinico {
   )
   @JoinColumn({ name: 'idIndicador' })
   indicadorClinico: IndicadorClinico;
-
 }
-

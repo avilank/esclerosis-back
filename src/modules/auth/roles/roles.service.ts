@@ -36,17 +36,22 @@ export class RolesService {
   }
 
   async findAll(): Promise<Rol[]> {
-    return await this.rolRepository.find({
-      relations: ['permisosRoles', 'permisosRoles.permiso'],
-      order: { idRol: 'ASC' },
-    });
+    return await this.rolRepository
+      .createQueryBuilder('rol')
+      .leftJoinAndSelect('rol.permisosRoles', 'permisosRoles')
+      .leftJoinAndSelect('permisosRoles.permiso', 'permiso')
+      .orderBy('rol.idRol', 'ASC')
+      .getMany();
   }
 
   async findOne(id: number): Promise<Rol> {
-    const rol = await this.rolRepository.findOne({
-      where: { idRol: id },
-      relations: ['permisosRoles', 'permisosRoles.permiso', 'usuarios'],
-    });
+    const rol = await this.rolRepository
+      .createQueryBuilder('rol')
+      .leftJoinAndSelect('rol.permisosRoles', 'permisosRoles')
+      .leftJoinAndSelect('permisosRoles.permiso', 'permiso')
+      .leftJoinAndSelect('rol.usuarios', 'usuarios')
+      .where('rol.idRol = :id', { id })
+      .getOne();
 
     if (!rol) {
       throw new NotFoundException(`Rol con ID ${id} no encontrado`);

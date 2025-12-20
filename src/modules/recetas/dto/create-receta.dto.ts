@@ -30,6 +30,10 @@ export class CreateRecetaDto {
   @IsOptional()
   contenido?: string;
 
+  @IsString()
+  @IsOptional()
+  sustentacion?: string;
+
   @IsBoolean()
   @IsOptional()
   isActive?: boolean = true;

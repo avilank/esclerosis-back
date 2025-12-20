@@ -26,5 +26,4 @@ export class CreateMedicoDto {
   @IsBoolean()
   @IsOptional()
   isActive?: boolean = true;
-
 }

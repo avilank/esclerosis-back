@@ -16,10 +16,14 @@ export class RecetasService {
     private readonly diagnosticoRepository: Repository<Diagnostico>,
     @InjectRepository(Tratamiento)
     private readonly tratamientoRepository: Repository<Tratamiento>,
-  ) { }
+  ) {}
   async create(createRecetaDto: CreateRecetaDto) {
-    const diagnostico = await this.diagnosticoRepository.findOne({ where: { idDiagnostico: createRecetaDto.idDiagnostico, isActive: true } });
-    const tratamiento = await this.tratamientoRepository.findOne({ where: { idTratamiento: createRecetaDto.idTratamiento, isActive: true } });
+    const diagnostico = await this.diagnosticoRepository.findOne({
+      where: { idDiagnostico: createRecetaDto.idDiagnostico, isActive: true },
+    });
+    const tratamiento = await this.tratamientoRepository.findOne({
+      where: { idTratamiento: createRecetaDto.idTratamiento, isActive: true },
+    });
     if (!diagnostico || !tratamiento) {
       throw new BadRequestException('Diagnostico o tratamiento no encontrado');
     }
@@ -31,22 +35,44 @@ export class RecetasService {
   }
 
   async findAll() {
-    const diagnosticos = await this.diagnosticoRepository.find({ where: { isActive: true } });
-    const tratamientos = await this.tratamientoRepository.find({ where: { isActive: true } });
-    return await this.recetaRepository.find({
-      where: { isActive: true },
-      relations: {
-        diagnostico: true,
-        tratamiento: true,
-      },
-    });
+    return await this.recetaRepository
+      .createQueryBuilder('receta')
+      .leftJoinAndSelect(
+        'receta.diagnostico',
+        'diagnostico',
+        'diagnostico.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect(
+        'receta.tratamiento',
+        'tratamiento',
+        'tratamiento.isActive = :isActive',
+        { isActive: true },
+      )
+      .where('receta.isActive = :isActive', { isActive: true })
+      .getMany();
   }
 
   async findOne(id: number) {
-    const receta = await this.recetaRepository.findOne({
-      where: { idReceta: id, isActive: true },
-      relations: ['diagnostico', 'tratamiento'],
-    });
+    const receta = await this.recetaRepository
+      .createQueryBuilder('receta')
+      .leftJoinAndSelect(
+        'receta.diagnostico',
+        'diagnostico',
+        'diagnostico.isActive = :isActive',
+        { isActive: true },
+      )
+      .leftJoinAndSelect(
+        'receta.tratamiento',
+        'tratamiento',
+        'tratamiento.isActive = :isActive',
+        { isActive: true },
+      )
+      .where('receta.idReceta = :id AND receta.isActive = :isActive', {
+        id,
+        isActive: true,
+      })
+      .getOne();
 
     if (!receta) {
       throw new BadRequestException('Receta no encontrada');
@@ -56,7 +82,9 @@ export class RecetasService {
   }
 
   async update(id: number, updateRecetaDto: UpdateRecetaDto) {
-    const receta = await this.recetaRepository.findOne({ where: { idReceta: id, isActive: true } });
+    const receta = await this.recetaRepository.findOne({
+      where: { idReceta: id, isActive: true },
+    });
     if (!receta) {
       throw new BadRequestException('Receta no encontrada');
     }
@@ -78,7 +106,9 @@ export class RecetasService {
   }
 
   async remove(id: number) {
-    const receta = await this.recetaRepository.findOne({ where: { idReceta: id, isActive: true } });
+    const receta = await this.recetaRepository.findOne({
+      where: { idReceta: id, isActive: true },
+    });
     if (!receta) {
       throw new BadRequestException('Receta no encontrada');
     }

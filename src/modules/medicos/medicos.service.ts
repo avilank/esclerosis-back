@@ -9,7 +9,6 @@ import { Sede } from '../sedes/entities/sede.entity';
 
 @Injectable()
 export class MedicosService {
-
   constructor(
     @InjectRepository(Medico)
     private readonly medicoRepository: Repository<Medico>,
@@ -19,12 +18,15 @@ export class MedicosService {
 
     @InjectRepository(Sede)
     private readonly sedeRepository: Repository<Sede>,
-
-  ) { }
+  ) {}
 
   async create(createMedicoDto: CreateMedicoDto) {
-    const area = await this.areaRepository.findOne({ where: { idArea: createMedicoDto.idArea, isActive: true } });
-    const sede = await this.sedeRepository.findOne({ where: { idSede: createMedicoDto.idSede, isActive: true } });
+    const area = await this.areaRepository.findOne({
+      where: { idArea: createMedicoDto.idArea, isActive: true },
+    });
+    const sede = await this.sedeRepository.findOne({
+      where: { idSede: createMedicoDto.idSede, isActive: true },
+    });
 
     if (!area || !sede) {
       throw new BadRequestException('Area o sede no encontrada');
@@ -38,21 +40,32 @@ export class MedicosService {
   }
 
   async findAll() {
-    return await this.medicoRepository.find({
-      where: { isActive: true },
-      relations: ['area', 'sede', 'usuario']
-    });
+    return await this.medicoRepository
+      .createQueryBuilder('medico')
+      .leftJoinAndSelect('medico.area', 'area')
+      .leftJoinAndSelect('medico.sede', 'sede')
+      .leftJoinAndSelect('medico.usuario', 'usuario')
+      .where('medico.isActive = :isActive', { isActive: true })
+      .getMany();
   }
 
   async findOne(id: number) {
-    return await this.medicoRepository.findOne({
-      where: { idMedico: id, isActive: true },
-      relations: ['area', 'sede', 'usuario']
-    });
+    return await this.medicoRepository
+      .createQueryBuilder('medico')
+      .leftJoinAndSelect('medico.area', 'area')
+      .leftJoinAndSelect('medico.sede', 'sede')
+      .leftJoinAndSelect('medico.usuario', 'usuario')
+      .where('medico.idMedico = :id AND medico.isActive = :isActive', {
+        id,
+        isActive: true,
+      })
+      .getOne();
   }
 
   async update(id: number, updateMedicoDto: UpdateMedicoDto) {
-    const medico = await this.medicoRepository.findOne({ where: { idMedico: id, isActive: true } });
+    const medico = await this.medicoRepository.findOne({
+      where: { idMedico: id, isActive: true },
+    });
     if (!medico) {
       throw new BadRequestException('Medico no encontrado');
     }
@@ -63,7 +76,9 @@ export class MedicosService {
   }
 
   async remove(id: number) {
-    const medico = await this.medicoRepository.findOne({ where: { idMedico: id, isActive: true } });
+    const medico = await this.medicoRepository.findOne({
+      where: { idMedico: id, isActive: true },
+    });
     if (!medico) {
       throw new BadRequestException('Medico no encontrado');
     }

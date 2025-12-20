@@ -1,9 +1,4 @@
-import {
-  Entity,
-  PrimaryColumn,
-  ManyToOne,
-  JoinColumn,
-} from 'typeorm';
+import { Entity, PrimaryColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { Rol } from '../../roles/entities/role.entity';
 import { Permiso } from './permiso.entity';
 
@@ -23,4 +18,3 @@ export class PermisoRol {
   @JoinColumn({ name: 'idPermiso' })
   permiso: Permiso;
 }
-

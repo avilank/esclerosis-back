@@ -16,5 +16,4 @@ import { Rol } from '../roles/entities/role.entity';
   providers: [AuthService, JwtUtil],
   exports: [AuthService],
 })
-export class AuthenticationModule { }
-
+export class AuthenticationModule {}

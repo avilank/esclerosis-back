@@ -14,19 +14,22 @@ export async function seedIndicadoresClinicos(dataSource: DataSource) {
   const indicadores = [
     {
       nombre: 'EDSS',
-      descripcion: 'Expanded Disability Status Scale (0-10) para gravedad global.',
+      descripcion:
+        'Expanded Disability Status Scale (0-10) para gravedad global.',
       unidad: IndicadorUnidad.NUMERO,
       categoriaIndicador: categorias[0],
     },
     {
       nombre: 'T25FW',
-      descripcion: 'Timed 25-Foot Walk. Tiempo en segundos, velocidad de marcha.',
+      descripcion:
+        'Timed 25-Foot Walk. Tiempo en segundos, velocidad de marcha.',
       unidad: IndicadorUnidad.NUMERO,
       categoriaIndicador: categorias[0],
     },
     {
       nombre: '9HPT',
-      descripcion: 'Nine-Hole Peg Test. Tiempo en segundos para destreza manual.',
+      descripcion:
+        'Nine-Hole Peg Test. Tiempo en segundos para destreza manual.',
       unidad: IndicadorUnidad.NUMERO,
       categoriaIndicador: categorias[0],
     },
@@ -68,7 +71,8 @@ export async function seedIndicadoresClinicos(dataSource: DataSource) {
     },
     {
       nombre: 'Impacto funcional global',
-      descripcion: 'Movilidad, marcha, manos, caídas, espasticidad, dolor, etc.',
+      descripcion:
+        'Movilidad, marcha, manos, caídas, espasticidad, dolor, etc.',
       unidad: IndicadorUnidad.TEXTO,
       categoriaIndicador: categorias[3],
     },
@@ -76,4 +80,3 @@ export async function seedIndicadoresClinicos(dataSource: DataSource) {
 
   await dataSource.manager.save(IndicadorClinico, indicadores);
 }
-

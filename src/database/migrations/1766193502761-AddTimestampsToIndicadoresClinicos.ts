@@ -1,7 +1,8 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class AddTimestampsToIndicadoresClinicos1766193502761
-  implements MigrationInterface {
+  implements MigrationInterface
+{
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Agregar columnas createdAt y updatedAt a la tabla indicadores_clinicos
     await queryRunner.query(`

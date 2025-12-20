@@ -11,9 +11,17 @@ import { DiagnosticoIndicadoresController } from './controllers/diagnostico-indi
 import { DiagnosticoIndicadoresService } from './services/diagnostico-indicadores.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Diagnostico, DiagnosticoIndicadorClinico, HistoriaClinica, Medico, IndicadorClinico])],
+  imports: [
+    TypeOrmModule.forFeature([
+      Diagnostico,
+      DiagnosticoIndicadorClinico,
+      HistoriaClinica,
+      Medico,
+      IndicadorClinico,
+    ]),
+  ],
   controllers: [DiagnosticosController, DiagnosticoIndicadoresController],
   providers: [DiagnosticosService, DiagnosticoIndicadoresService],
   exports: [DiagnosticosService, DiagnosticoIndicadoresService],
 })
-export class DiagnosticosModule { }
+export class DiagnosticosModule {}

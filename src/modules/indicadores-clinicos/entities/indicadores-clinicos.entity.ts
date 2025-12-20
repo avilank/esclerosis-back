@@ -17,7 +17,6 @@ export class IndicadorClinico {
   @PrimaryGeneratedColumn({ name: 'idIndicador' })
   idIndicador: number;
 
-
   @Column({ name: 'nombre', length: 255 })
   nombre: string;
 
@@ -30,10 +29,8 @@ export class IndicadorClinico {
   @Column({ type: 'boolean', default: false })
   bloqueado: boolean;
 
-
   @Column({ type: 'boolean', default: true })
   isActive: boolean;
-
 
   @ManyToOne(
     () => CategoriaIndicador,
@@ -44,7 +41,8 @@ export class IndicadorClinico {
 
   @OneToMany(
     () => DiagnosticoIndicadorClinico,
-    (diagnosticoIndicadorClinico) => diagnosticoIndicadorClinico.indicadorClinico,
+    (diagnosticoIndicadorClinico) =>
+      diagnosticoIndicadorClinico.indicadorClinico,
   )
   indicadoresClinicosDiagnostico: DiagnosticoIndicadorClinico[];
 

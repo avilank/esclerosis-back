@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Usuario } from 'src/modules/usuarios/entities/usuario.entity';
 import { Rol } from 'src/modules/auth/roles/entities/role.entity';
@@ -14,7 +18,7 @@ export class AuthService {
     private jwtUtil: JwtUtil,
     @InjectRepository(Rol)
     private rolRepository: Repository<Rol>,
-  ) { }
+  ) {}
 
   async login(loginDto: LoginDto) {
     const usuario = await this.usuarioRepository.findOne({

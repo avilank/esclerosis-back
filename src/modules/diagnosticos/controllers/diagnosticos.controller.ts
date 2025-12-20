@@ -16,7 +16,7 @@ import { UpdateDiagnosticoDto } from '../dto/update-diagnostico.dto';
 
 @Controller('diagnosticos')
 export class DiagnosticosController {
-  constructor(private readonly diagnosticosService: DiagnosticosService) { }
+  constructor(private readonly diagnosticosService: DiagnosticosService) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -48,7 +48,6 @@ export class DiagnosticosController {
   async getStatsByPaciente(@Param('idPaciente') idPaciente: string) {
     return this.diagnosticosService.getStatsByPaciente(+idPaciente);
   }
-
 
   @Get(':id')
   findOne(@Param('id') id: string) {

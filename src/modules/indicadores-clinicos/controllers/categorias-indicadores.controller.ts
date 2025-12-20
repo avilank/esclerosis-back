@@ -1,14 +1,28 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { CategoriasIndicadoresService } from '../services';
 import * as dto from '../dto/index';
 
 @Controller('categorias-indicadores')
 export class CategoriasIndicadoresController {
-  constructor(private readonly categoriasIndicadoresService: CategoriasIndicadoresService) { }
+  constructor(
+    private readonly categoriasIndicadoresService: CategoriasIndicadoresService,
+  ) {}
 
   @Post()
-  create(@Body() createCategoriasIndicadoreDto: dto.CreateCategoriasIndicadoresDto) {
-    return this.categoriasIndicadoresService.create(createCategoriasIndicadoreDto);
+  create(
+    @Body() createCategoriasIndicadoreDto: dto.CreateCategoriasIndicadoresDto,
+  ) {
+    return this.categoriasIndicadoresService.create(
+      createCategoriasIndicadoreDto,
+    );
   }
 
   @Get()
@@ -22,8 +36,14 @@ export class CategoriasIndicadoresController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCategoriasIndicadoreDto: dto.UpdateCategoriasIndicadoreDto) {
-    return this.categoriasIndicadoresService.update(+id, updateCategoriasIndicadoreDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateCategoriasIndicadoreDto: dto.UpdateCategoriasIndicadoreDto,
+  ) {
+    return this.categoriasIndicadoresService.update(
+      +id,
+      updateCategoriasIndicadoreDto,
+    );
   }
 
   @Delete(':id')
