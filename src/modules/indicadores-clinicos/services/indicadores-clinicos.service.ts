@@ -18,11 +18,12 @@ export class IndicadoresClinicosService {
   async create(createIndicadoresClinicoDto: dto.CreateIndicadoresClinicoDto) {
     const { idCategoriaIndicador, ...data } = createIndicadoresClinicoDto;
     const categoriaIndicador =
-      await this.categoriaIndicadorRepository.findOne({
-        where: { idTipoIndicador: idCategoriaIndicador, isActive: true },
+      await this.categoriaIndicadorRepository.findOneBy({
+        idTipoIndicador: idCategoriaIndicador,
+        isActive: true,
       });
     if (!categoriaIndicador) {
-      throw new BadRequestException('Categoria de indicador no encontrada');
+      throw new BadRequestException('Categoria de indicador no encontrada o inactiva');
     }
     return await this.indicadorClinicoRepository.save({
       ...data,
@@ -67,13 +68,14 @@ export class IndicadoresClinicosService {
     let categoriaIndicador: CategoriaIndicador | null =
       indicadorClinico.categoriaIndicador;
     if (updateIndicadoresClinicoDto.idCategoriaIndicador !== undefined) {
-      categoriaIndicador = await this.categoriaIndicadorRepository.findOne({
-        where: { idTipoIndicador: updateIndicadoresClinicoDto.idCategoriaIndicador, isActive: true },
+      categoriaIndicador = await this.categoriaIndicadorRepository.findOneBy({
+        idTipoIndicador: updateIndicadoresClinicoDto.idCategoriaIndicador,
+        isActive: true,
       });
     }
 
     if (!categoriaIndicador) {
-      throw new BadRequestException('Categoria de indicador no encontrada');
+      throw new BadRequestException('Categoria de indicador no encontrada o inactiva');
     }
 
     const { idCategoriaIndicador, ...data } = updateIndicadoresClinicoDto;
@@ -85,10 +87,16 @@ export class IndicadoresClinicosService {
   }
 
   async remove(id: number) {
-    const indicadorClinico = await this.indicadorClinicoRepository.findOne({ where: { idIndicador: id, isActive: true } });
+    const indicadorClinico = await this.indicadorClinicoRepository.findOneBy({ 
+      idIndicador: id,
+      isActive: true 
+    });
     if (!indicadorClinico) {
       throw new BadRequestException('Indicador clinico no encontrado');
     }
-    return this.indicadorClinicoRepository.update(id, { isActive: false });
+    
+    // Borrado lógico del indicador (sin afectar la categoría)
+    indicadorClinico.isActive = false;
+    return await this.indicadorClinicoRepository.save(indicadorClinico);
   }
 }
