@@ -58,7 +58,15 @@ export class HistoriasClinicasService {
     const historiaClinicaConRelaciones = await this.historiaClinicaRepository.findOne({
       where: { idHistoriaClinica: saved.idHistoriaClinica },
       relations: ['paciente', 'diagnosticos'],
+      relationLoadStrategy: 'query', // Para poder filtrar relaciones
     });
+
+    // Filtrar diagnósticos activos
+    if (historiaClinicaConRelaciones?.diagnosticos) {
+      historiaClinicaConRelaciones.diagnosticos = historiaClinicaConRelaciones.diagnosticos.filter(
+        diagnostico => diagnostico.isActive === true
+      );
+    }
 
     if (!historiaClinicaConRelaciones) {
       throw new NotFoundException(
@@ -70,17 +78,30 @@ export class HistoriasClinicasService {
   }
 
   async findAll(): Promise<HistoriaClinica[]> {
-    return await this.historiaClinicaRepository.find({
+    const historias = await this.historiaClinicaRepository.find({
       where: { isActive: true },
       relations: ['paciente', 'diagnosticos'],
+      relationLoadStrategy: 'query',
       order: { idHistoriaClinica: 'DESC' },
     });
+
+    // Filtrar diagnósticos activos
+    historias.forEach(historia => {
+      if (historia.diagnosticos) {
+        historia.diagnosticos = historia.diagnosticos.filter(
+          diagnostico => diagnostico.isActive === true
+        );
+      }
+    });
+
+    return historias;
   }
 
   async findOne(id: number): Promise<HistoriaClinica> {
     const historiaClinica = await this.historiaClinicaRepository.findOne({
       where: { idHistoriaClinica: id, isActive: true },
       relations: ['paciente', 'diagnosticos', 'diagnosticos.medico'],
+      relationLoadStrategy: 'query',
     });
 
     if (!historiaClinica) {
@@ -89,14 +110,30 @@ export class HistoriasClinicasService {
       );
     }
 
+    // Filtrar diagnósticos activos
+    if (historiaClinica.diagnosticos) {
+      historiaClinica.diagnosticos = historiaClinica.diagnosticos.filter(
+        diagnostico => diagnostico.isActive === true
+      );
+    }
+
     return historiaClinica;
   }
 
   async findByPaciente(idPaciente: number): Promise<HistoriaClinica | null> {
-    return await this.historiaClinicaRepository.findOne({
+    const historiaClinica = await this.historiaClinicaRepository.findOne({
       where: { idPaciente, isActive: true },
       relations: ['paciente', 'diagnosticos', 'diagnosticos.medico'],
+      relationLoadStrategy: 'query',
     });
+
+    if (historiaClinica?.diagnosticos) {
+      historiaClinica.diagnosticos = historiaClinica.diagnosticos.filter(
+        diagnostico => diagnostico.isActive === true
+      );
+    }
+
+    return historiaClinica;
   }
 
   async update(
@@ -158,7 +195,8 @@ export class HistoriasClinicasService {
     // Evitar búsquedas con 1 o 2 letras
     if (!clean || clean.length < 3) return [];
     const searchTerm = `%${clean}%`;
-    return await this.historiaClinicaRepository
+
+    const historias = await this.historiaClinicaRepository
       .createQueryBuilder('hc')
       .leftJoinAndSelect('hc.paciente', 'paciente')
       .leftJoinAndSelect('hc.diagnosticos', 'diagnosticos')
@@ -167,8 +205,11 @@ export class HistoriasClinicasService {
         { term: searchTerm }
       )
       .andWhere('hc.isActive = :isActive', { isActive: true })
+      .andWhere('diagnosticos.isActive = :diagnosticoActive', { diagnosticoActive: true })
       .orderBy('hc.idHistoriaClinica', 'DESC')
       .getMany();
+
+    return historias;
   }
 
   async findMedicoHistoriaClinica(idMedico: number): Promise<HistoriaClinica[]> {
@@ -190,6 +231,7 @@ export class HistoriasClinicasService {
       .leftJoinAndSelect('diagnosticos.medico', 'medico')
       .where('diagnosticos.idMedico = :idMedico', { idMedico })
       .andWhere('hc.isActive = :isActive', { isActive: true })
+      .andWhere('diagnosticos.isActive = :diagnosticoActive', { diagnosticoActive: true })
       .orderBy('hc.idHistoriaClinica', 'DESC')
       .getMany();
   }
@@ -225,6 +267,7 @@ export class HistoriasClinicasService {
       )
       .andWhere('diagnosticos.idMedico = :idMedico', { idMedico })
       .andWhere('hc.isActive = :isActive', { isActive: true })
+      .andWhere('diagnosticos.isActive = :diagnosticoActive', { diagnosticoActive: true })
       .orderBy('hc.idHistoriaClinica', 'DESC')
       .getMany();
   }

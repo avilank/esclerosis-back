@@ -5,6 +5,8 @@ import {
   ManyToOne,
   OneToMany,
   JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { CategoriaIndicador } from './categorias-indicadores.entity';
 import { DiagnosticoIndicadorClinico } from 'src/modules/models/models';
@@ -45,4 +47,10 @@ export class IndicadorClinico {
     (diagnosticoIndicadorClinico) => diagnosticoIndicadorClinico.indicadorClinico,
   )
   indicadoresClinicosDiagnostico: DiagnosticoIndicadorClinico[];
+
+  @CreateDateColumn({ name: 'createdAt', type: 'timestamp' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updatedAt', type: 'timestamp' })
+  updatedAt: Date;
 }
