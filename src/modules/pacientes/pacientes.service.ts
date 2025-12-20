@@ -11,6 +11,8 @@ export class PacientesService {
   constructor(
     @InjectRepository(Paciente)
     private readonly pacienteRepository: Repository<Paciente>,
+    @InjectRepository(Usuario)
+    private readonly usuarioRepository: Repository<Usuario>,
   ) { }
 
   async create(createPacienteDto: CreatePacienteDto) {
@@ -22,17 +24,31 @@ export class PacientesService {
   }
 
   async findAll() {
-    return await this.pacienteRepository.find({
-      where: { isActive: true },
-      relations: ['usuario', 'historiaClinica']
-    });
+    // Filtrar pacientes activos y que su usuario también esté activo
+    return await this.pacienteRepository
+      .createQueryBuilder('paciente')
+      .leftJoinAndSelect('paciente.usuario', 'usuario')
+      .leftJoinAndSelect('paciente.historiaClinica', 'historiaClinica')
+      .where('paciente.isActive = :isActive', { isActive: true })
+      .andWhere('usuario.estado = :estado', { estado: true })
+      .getMany();
   }
 
   async findOne(id: number) {
-    return await this.pacienteRepository.findOne({
-      where: { idPaciente: id, isActive: true },
-      relations: ['usuario', 'historiaClinica']
-    });
+    const paciente = await this.pacienteRepository
+      .createQueryBuilder('paciente')
+      .leftJoinAndSelect('paciente.usuario', 'usuario')
+      .leftJoinAndSelect('paciente.historiaClinica', 'historiaClinica')
+      .where('paciente.idPaciente = :id', { id })
+      .andWhere('paciente.isActive = :isActive', { isActive: true })
+      .andWhere('usuario.estado = :estado', { estado: true })
+      .getOne();
+    
+    if (!paciente) {
+      throw new BadRequestException('Paciente no encontrado');
+    }
+    
+    return paciente;
   }
 
   async update(id: number, updatePacienteDto: UpdatePacienteDto) {

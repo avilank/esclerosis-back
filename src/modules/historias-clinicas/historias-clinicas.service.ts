@@ -71,7 +71,6 @@ export class HistoriasClinicasService {
 
   async findAll(): Promise<HistoriaClinica[]> {
     return await this.historiaClinicaRepository.find({
-      where: { isActive: true },
       relations: ['paciente', 'diagnosticos'],
       order: { idHistoriaClinica: 'DESC' },
     });
@@ -79,7 +78,7 @@ export class HistoriasClinicasService {
 
   async findOne(id: number): Promise<HistoriaClinica> {
     const historiaClinica = await this.historiaClinicaRepository.findOne({
-      where: { idHistoriaClinica: id, isActive: true },
+      where: { idHistoriaClinica: id },
       relations: ['paciente', 'diagnosticos', 'diagnosticos.medico'],
     });
 

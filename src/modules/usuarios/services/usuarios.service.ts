@@ -190,12 +190,15 @@ export class UsuariosService {
   }
 
   findAll() {
-    return this.usuarioRepo.find({ relations: ['rol'] });
+    return this.usuarioRepo.find({ 
+      where: { estado: true },
+      relations: ['rol'] 
+    });
   }
 
   async findOne(id: number) {
     const usuario = await this.usuarioRepo.findOne({
-      where: { idUsuario: id },
+      where: { idUsuario: id, estado: true },
       relations: ['rol', 'paciente', 'medico'],
     });
     if (!usuario) throw new NotFoundException(`Usuario ${id} no encontrado`);
@@ -203,7 +206,14 @@ export class UsuariosService {
   }
 
   async update(id: number, updateUsuarioDto: UpdateUsuarioDto) {
-    const usuario = await this.findOne(id);
+    const usuario = await this.usuarioRepo.findOne({
+      where: { idUsuario: id, estado: true },
+      relations: ['rol', 'paciente', 'medico'],
+    });
+    
+    if (!usuario) {
+      throw new NotFoundException(`Usuario ${id} no encontrado`);
+    }
 
     // check uniqueness if username/email provided
     await this.checkUniqueUsernameEmail(updateUsuarioDto.username, updateUsuarioDto.email, id);
@@ -353,14 +363,54 @@ export class UsuariosService {
 
     // Retornar usuario con relaciones cargadas
     return await this.usuarioRepo.findOne({
-      where: { idUsuario: usuarioActualizado.idUsuario },
+      where: { idUsuario: usuarioActualizado.idUsuario, estado: true },
       relations: ['rol', 'paciente', 'medico'],
     });
   }
 
   async remove(id: number) {
-    const usuario = await this.findOne(id);
-    await this.usuarioRepo.remove(usuario);
-    return { deleted: true };
+    const usuario = await this.usuarioRepo.findOne({
+      where: { idUsuario: id, estado: true },
+      relations: ['rol', 'paciente', 'medico'],
+    });
+    
+    if (!usuario) {
+      throw new NotFoundException(`Usuario ${id} no encontrado`);
+    }
+
+    // Obtener el rol para determinar el tipo de usuario
+    const nombreRol = usuario.rol?.nombre?.toLowerCase() || '';
+    const esMedico = nombreRol === 'médico' || nombreRol === 'medico';
+    const esPaciente = nombreRol === 'paciente';
+
+    // Borrado lógico del usuario
+    await this.usuarioRepo.update(id, { estado: false });
+
+    // Si es médico, ocultar los datos del médico
+    if (esMedico && usuario.medico) {
+      await this.medicoRepo.update(usuario.medico.idMedico, { isActive: false });
+    }
+
+    // Si es paciente, ocultar los datos del paciente y la historia clínica
+    if (esPaciente && usuario.paciente) {
+      // Ocultar paciente
+      await this.pacienteRepo.update(usuario.paciente.idPaciente, { isActive: false });
+      
+      // Ocultar historia clínica
+      const historiaClinica = await this.historiaClinicaRepo.findOne({
+        where: { idPaciente: usuario.paciente.idPaciente },
+      });
+      if (historiaClinica) {
+        await this.historiaClinicaRepo.update(historiaClinica.idHistoriaClinica, { 
+          isActive: false,
+          estado: 'inactiva',
+        });
+      }
+    }
+
+    return { 
+      message: 'Usuario eliminado lógicamente',
+      deleted: true 
+    };
   }
 }

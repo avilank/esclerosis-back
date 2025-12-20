@@ -72,6 +72,11 @@ export class IndicadoresClinicosService {
         idTipoIndicador: updateIndicadoresClinicoDto.idCategoriaIndicador,
         isActive: true,
       });
+    } else {
+      // Verificar que la categoría actual esté activa
+      if (categoriaIndicador && !categoriaIndicador.isActive) {
+        throw new BadRequestException('La categoría asociada está inactiva');
+      }
     }
 
     if (!categoriaIndicador) {
@@ -89,14 +94,16 @@ export class IndicadoresClinicosService {
   async remove(id: number) {
     const indicadorClinico = await this.indicadorClinicoRepository.findOneBy({ 
       idIndicador: id,
-      isActive: true 
+      isActive: true,
     });
     if (!indicadorClinico) {
       throw new BadRequestException('Indicador clinico no encontrado');
     }
-    
-    // Borrado lógico del indicador (sin afectar la categoría)
-    indicadorClinico.isActive = false;
-    return await this.indicadorClinicoRepository.save(indicadorClinico);
+    // Borrado lógico: solo se borra el indicador, sin afectar la categoría
+    await this.indicadorClinicoRepository.update(id, { isActive: false });
+    return { 
+      message: 'Indicador clinico ha sido eliminado lógicamente',
+      deleted: true 
+    };
   }
 }
