@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -40,6 +41,7 @@ export class RolesService {
       .createQueryBuilder('rol')
       .leftJoinAndSelect('rol.permisosRoles', 'permisosRoles')
       .leftJoinAndSelect('permisosRoles.permiso', 'permiso')
+      .where('rol.isActive = :isActive', { isActive: true })
       .orderBy('rol.idRol', 'ASC')
       .getMany();
   }
@@ -51,6 +53,7 @@ export class RolesService {
       .leftJoinAndSelect('permisosRoles.permiso', 'permiso')
       .leftJoinAndSelect('rol.usuarios', 'usuarios')
       .where('rol.idRol = :id', { id })
+      .andWhere('rol.isActive = :isActive', { isActive: true })
       .getOne();
 
     if (!rol) {
@@ -92,14 +95,39 @@ export class RolesService {
 
     // Contar usuarios que tienen este rol
     const count = await this.usuarioRepository.count({
-      where: { idRol: id },
+      where: { idRol: id, estado: true },
     });
 
     return { count };
   }
 
-  async remove(id: number): Promise<void> {
-    const rol = await this.findOne(id);
-    await this.rolRepository.remove(rol);
+  async remove(id: number): Promise<{ message: string; deleted: boolean }> {
+    const rol = await this.rolRepository.findOne({
+      where: { idRol: id, isActive: true },
+    });
+
+    if (!rol) {
+      throw new NotFoundException(`Rol con ID ${id} no encontrado`);
+    }
+
+    // Verificar si hay usuarios activos asociados a este rol
+    const usuariosAsociados = await this.usuarioRepository
+      .createQueryBuilder('usuario')
+      .where('usuario.idRol = :idRol', { idRol: id })
+      .andWhere('usuario.estado = :estado', { estado: true })
+      .getMany();
+
+    if (usuariosAsociados.length > 0) {
+      throw new BadRequestException(
+        'No se puede borrar porque hay usuarios asociados',
+      );
+    }
+
+    // Borrado lógico
+    await this.rolRepository.update(id, { isActive: false });
+    return {
+      message: 'Rol eliminado correctamente',
+      deleted: true,
+    };
   }
 }

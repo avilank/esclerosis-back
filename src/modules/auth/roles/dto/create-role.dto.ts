@@ -12,6 +12,5 @@ export class CreateRoleDto {
   descripcion?: string;
 
   @IsBoolean()
-  @IsOptional()
-  isActive?: boolean;
+  isActive: boolean;
 }

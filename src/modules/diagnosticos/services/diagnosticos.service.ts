@@ -82,23 +82,12 @@ export class DiagnosticosService {
   async findAll(): Promise<Diagnostico[]> {
     return await this.diagnosticoRepository
       .createQueryBuilder('diagnostico')
-      .leftJoinAndSelect(
-        'diagnostico.historiaClinica',
-        'historiaClinica',
-        'historiaClinica.isActive = :isActive',
-        { isActive: true },
-      )
-      .leftJoinAndSelect(
-        'historiaClinica.paciente',
-        'paciente',
-        'paciente.isActive = :isActive',
-        { isActive: true },
-      )
+      .leftJoinAndSelect('diagnostico.historiaClinica', 'historiaClinica')
+      .leftJoinAndSelect('historiaClinica.paciente', 'paciente')
       .leftJoinAndSelect(
         'diagnostico.medico',
         'medico',
-        'medico.isActive = :isActive',
-        { isActive: true },
+      
       )
       .leftJoinAndSelect(
         'diagnostico.recetas',
@@ -134,23 +123,11 @@ export class DiagnosticosService {
   async findOne(id: number): Promise<Diagnostico> {
     const diagnostico = await this.diagnosticoRepository
       .createQueryBuilder('diagnostico')
-      .leftJoinAndSelect(
-        'diagnostico.historiaClinica',
-        'historiaClinica',
-        'historiaClinica.isActive = :isActive',
-        { isActive: true },
-      )
-      .leftJoinAndSelect(
-        'historiaClinica.paciente',
-        'paciente',
-        'paciente.isActive = :isActive',
-        { isActive: true },
-      )
+      .leftJoinAndSelect('diagnostico.historiaClinica', 'historiaClinica')
+      .leftJoinAndSelect('historiaClinica.paciente', 'paciente')
       .leftJoinAndSelect(
         'diagnostico.medico',
-        'medico',
-        'medico.isActive = :isActive',
-        { isActive: true },
+        'medico'
       )
       .leftJoinAndSelect(
         'diagnostico.recetas',
@@ -239,18 +216,8 @@ export class DiagnosticosService {
   async findByMedico(idMedico: number): Promise<Diagnostico[]> {
     return await this.diagnosticoRepository
       .createQueryBuilder('diagnostico')
-      .leftJoinAndSelect(
-        'diagnostico.historiaClinica',
-        'historiaClinica',
-        'historiaClinica.isActive = :isActive',
-        { isActive: true },
-      )
-      .leftJoinAndSelect(
-        'historiaClinica.paciente',
-        'paciente',
-        'paciente.isActive = :isActive',
-        { isActive: true },
-      )
+      .leftJoinAndSelect('diagnostico.historiaClinica', 'historiaClinica')
+      .leftJoinAndSelect('historiaClinica.paciente', 'paciente')
       .leftJoinAndSelect(
         'diagnostico.recetas',
         'recetas',
@@ -289,18 +256,8 @@ export class DiagnosticosService {
     // Traer diagnósticos igual que findByMedico
     const diagnosticos = await this.diagnosticoRepository
       .createQueryBuilder('diagnostico')
-      .leftJoinAndSelect(
-        'diagnostico.historiaClinica',
-        'historiaClinica',
-        'historiaClinica.isActive = :isActive',
-        { isActive: true },
-      )
-      .leftJoinAndSelect(
-        'historiaClinica.paciente',
-        'paciente',
-        'paciente.isActive = :isActive',
-        { isActive: true },
-      )
+      .leftJoinAndSelect('diagnostico.historiaClinica', 'historiaClinica')
+      .leftJoinAndSelect('historiaClinica.paciente', 'paciente')
       .leftJoinAndSelect(
         'diagnostico.recetas',
         'recetas',

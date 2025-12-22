@@ -245,6 +245,7 @@ export class UsuariosService {
     return this.usuarioRepo
       .createQueryBuilder('usuario')
       .leftJoinAndSelect('usuario.rol', 'rol')
+      .where('usuario.estado = :estado', { estado: true })
       .getMany();
   }
 

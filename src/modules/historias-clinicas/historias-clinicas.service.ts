@@ -87,7 +87,6 @@ export class HistoriasClinicasService {
 
   async findAll(): Promise<HistoriaClinica[]> {
     const historias = await this.historiaClinicaRepository.find({
-      where: { isActive: true },
       relations: ['paciente', 'diagnosticos'],
       relationLoadStrategy: 'query',
       order: { idHistoriaClinica: 'DESC' },
@@ -215,10 +214,10 @@ export class HistoriasClinicasService {
         '(paciente.nombrePaciente ILIKE :term OR paciente.dniPaciente ILIKE :term)',
         { term: searchTerm },
       )
-      .andWhere('hc.isActive = :isActive', { isActive: true })
-      .andWhere('diagnosticos.isActive = :diagnosticoActive', {
-        diagnosticoActive: true,
-      })
+      // .andWhere('hc.isActive = :isActive', { isActive: true })
+      // .orWhere('diagnosticos.isActive = :diagnosticoActive', {
+      //   diagnosticoActive: true,
+      // })
       .orderBy('hc.idHistoriaClinica', 'DESC')
       .getMany();
 
