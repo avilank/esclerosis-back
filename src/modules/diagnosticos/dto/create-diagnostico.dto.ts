@@ -2,7 +2,7 @@ import {
   IsInt,
   IsNotEmpty,
   IsString,
-  IsDateString,
+  IsDate,
   IsOptional,
   IsBoolean,
   MaxLength,
@@ -17,9 +17,9 @@ export class CreateDiagnosticoDto {
   @IsNotEmpty()
   idMedico: number;
 
-  @IsDateString()
+  @IsDate()
   @IsNotEmpty()
-  fechaDiagnostico: string;
+  fechaDiagnostico: Date;
 
   @IsString()
   @IsNotEmpty()

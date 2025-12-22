@@ -48,7 +48,6 @@ export class DiagnosticosService {
 
     const diagnostico = this.diagnosticoRepository.create({
       ...createDiagnosticoDto,
-      fechaDiagnostico: new Date(createDiagnosticoDto.fechaDiagnostico),
       es_diagnostico_inicial:
         createDiagnosticoDto.es_diagnostico_inicial || false,
     });
@@ -474,12 +473,6 @@ export class DiagnosticosService {
       }
     }
 
-    // Convertir fecha si viene como string
-    if (updateDiagnosticoDto.fechaDiagnostico) {
-      updateDiagnosticoDto.fechaDiagnostico = new Date(
-        updateDiagnosticoDto.fechaDiagnostico,
-      ) as any;
-    }
 
     Object.assign(diagnostico, updateDiagnosticoDto);
     const saved = await this.diagnosticoRepository.save(diagnostico);
