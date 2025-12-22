@@ -14,13 +14,16 @@ export class CreateMedicoDto {
   nombre: string;
 
   @IsString()
+  @IsNotEmpty()
   @MaxLength(20)
   genero: string;
 
   @IsInt()
+  @IsNotEmpty()
   idArea: number;
 
   @IsInt()
+  @IsNotEmpty()
   idSede: number;
 
   @IsBoolean()

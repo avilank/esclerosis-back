@@ -21,7 +21,7 @@ export class Medico {
   @Column({ name: 'nombre', length: 255 })
   nombre: string;
 
-  @Column({ name: 'genero', length: 20, nullable: true })
+  @Column({ name: 'genero', length: 20})
   genero: string;
 
   @Column({ name: 'isActive', type: 'boolean', default: true })

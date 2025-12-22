@@ -18,9 +18,9 @@ export class CreateRecetaDto {
   idTratamiento: number;
 
   @IsString()
-  @IsOptional()
+  @IsNotEmpty()
   @MaxLength(255)
-  Modelo_IA?: string;
+  Modelo_IA: string;
 
   @IsDateString()
   @IsNotEmpty()

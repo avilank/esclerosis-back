@@ -27,10 +27,10 @@ export class Diagnostico {
   @Column({ name: 'fechaDiagnostico', type: 'date' })
   fechaDiagnostico: Date;
 
-  @Column({ name: 'estadoSalud', length: 100, nullable: true })
+  @Column({ name: 'estadoSalud', length: 100})
   estadoSalud: string;
 
-  @Column({ name: 'gradoEnfermedad', length: 100, nullable: true })
+  @Column({ name: 'gradoEnfermedad', length: 100})
   gradoEnfermedad: string;
 
   @Column({ name: 'observaciones', type: 'text', nullable: true })

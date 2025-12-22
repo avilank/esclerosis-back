@@ -22,14 +22,14 @@ export class CreateDiagnosticoDto {
   fechaDiagnostico: string;
 
   @IsString()
-  @IsOptional()
+  @IsNotEmpty()
   @MaxLength(100)
-  estadoSalud?: string;
+  estadoSalud: string;
 
   @IsString()
-  @IsOptional()
+  @IsNotEmpty()
   @MaxLength(100)
-  gradoEnfermedad?: string;
+  gradoEnfermedad: string;
 
   @IsString()
   @IsOptional()
