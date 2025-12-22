@@ -460,24 +460,55 @@ export class DiagnosticosService {
       }
     }
 
-    // Si se actualiza el médico, verificar que existe
-    if (updateDiagnosticoDto.idMedico) {
+    // Si se actualiza el médico, verificar que existe y está activo
+    if (updateDiagnosticoDto.idMedico !== undefined) {
       const medico = await this.medicoRepository.findOne({
         where: { idMedico: updateDiagnosticoDto.idMedico, isActive: true },
       });
 
       if (!medico) {
         throw new NotFoundException(
-          `Médico con ID ${updateDiagnosticoDto.idMedico} no encontrado`,
+          `Médico con ID ${updateDiagnosticoDto.idMedico} no encontrado o no está activo`,
         );
       }
     }
 
+    // Preparar objeto de actualización para usar update directamente
+    const updateData: Partial<Diagnostico> = {};
+    
+    if (updateDiagnosticoDto.idhistoriaClinica !== undefined) {
+      updateData.idhistoriaClinica = updateDiagnosticoDto.idhistoriaClinica;
+    }
+    
+    if (updateDiagnosticoDto.idMedico !== undefined) {
+      updateData.idMedico = updateDiagnosticoDto.idMedico;
+    }
+    
+    if (updateDiagnosticoDto.fechaDiagnostico !== undefined) {
+      updateData.fechaDiagnostico = updateDiagnosticoDto.fechaDiagnostico;
+    }
+    
+    if (updateDiagnosticoDto.estadoSalud !== undefined) {
+      updateData.estadoSalud = updateDiagnosticoDto.estadoSalud;
+    }
+    
+    if (updateDiagnosticoDto.gradoEnfermedad !== undefined) {
+      updateData.gradoEnfermedad = updateDiagnosticoDto.gradoEnfermedad;
+    }
+    
+    if (updateDiagnosticoDto.observaciones !== undefined) {
+      updateData.observaciones = updateDiagnosticoDto.observaciones;
+    }
+    
+    if (updateDiagnosticoDto.es_diagnostico_inicial !== undefined) {
+      updateData.es_diagnostico_inicial = updateDiagnosticoDto.es_diagnostico_inicial;
+    }
+    
+    // Usar update para forzar la actualización en la base de datos
+    await this.diagnosticoRepository.update(id, updateData);
 
-    Object.assign(diagnostico, updateDiagnosticoDto);
-    const saved = await this.diagnosticoRepository.save(diagnostico);
-
-    return await this.findOne(saved.idDiagnostico);
+    // Retornar el diagnóstico actualizado con todas las relaciones
+    return await this.findOne(id);
   }
 
   async remove(id: number): Promise<void> {
