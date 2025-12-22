@@ -7,6 +7,7 @@ import {
 import * as dto from '../dto/index';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CategoriaIndicador } from '../entities/categorias-indicadores.entity';
+import { IndicadorClinico } from '../entities/indicadores-clinicos.entity';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -14,6 +15,8 @@ export class CategoriasIndicadoresService {
   constructor(
     @InjectRepository(CategoriaIndicador)
     private readonly categoriaIndicadorRepository: Repository<CategoriaIndicador>,
+    @InjectRepository(IndicadorClinico)
+    private readonly indicadorClinicoRepository: Repository<IndicadorClinico>,
   ) {}
 
   async create(
@@ -26,7 +29,9 @@ export class CategoriasIndicadoresService {
   }
 
   async findAll() {
-    return await this.categoriaIndicadorRepository.find();
+    return await this.categoriaIndicadorRepository.find({
+      where: { isActive: true },
+    });
   }
 
   async findOne(id: number) {
@@ -59,6 +64,22 @@ export class CategoriasIndicadoresService {
     if (!categoriaIndicador) {
       throw new NotFoundException('Categoria indicador no encontrada');
     }
-    return await this.categoriaIndicadorRepository.delete(id);
+
+    // Borrado lógico de todos los indicadores que pertenecen a esta categoría
+    await this.indicadorClinicoRepository
+      .createQueryBuilder()
+      .update(IndicadorClinico)
+      .set({ isActive: false })
+      .where('idCategoriaIndicador = :id', { id })
+      .andWhere('isActive = :isActive', { isActive: true })
+      .execute();
+
+    // Borrado lógico de la categoría
+    await this.categoriaIndicadorRepository.update(id, { isActive: false });
+
+    return { 
+      message: 'Categoria indicador y sus indicadores asociados han sido eliminados lógicamente',
+      deleted: true 
+    };
   }
 }

@@ -11,7 +11,9 @@ export class PacientesService {
   constructor(
     @InjectRepository(Paciente)
     private readonly pacienteRepository: Repository<Paciente>,
-  ) {}
+    @InjectRepository(Usuario)
+    private readonly usuarioRepository: Repository<Usuario>,
+  ) { }
 
   async create(createPacienteDto: CreatePacienteDto) {
     const paciente = await this.pacienteRepository.findOne({

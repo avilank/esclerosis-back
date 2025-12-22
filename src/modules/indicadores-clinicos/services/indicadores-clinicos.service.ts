@@ -89,6 +89,11 @@ export class IndicadoresClinicosService {
         idTipoIndicador: updateIndicadoresClinicoDto.idCategoriaIndicador,
         isActive: true,
       });
+    } else {
+      // Verificar que la categoría actual esté activa
+      if (categoriaIndicador && !categoriaIndicador.isActive) {
+        throw new BadRequestException('La categoría asociada está inactiva');
+      }
     }
 
     if (!categoriaIndicador) {

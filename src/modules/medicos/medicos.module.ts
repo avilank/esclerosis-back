@@ -5,9 +5,10 @@ import { MedicosController } from './medicos.controller';
 import { Medico } from './entities/medico.entity';
 import { Area } from '../areas/entities/area.entity';
 import { Sede } from '../sedes/entities/sede.entity';
+import { Usuario } from '../usuarios/entities/usuario.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Medico, Area, Sede])],
+  imports: [TypeOrmModule.forFeature([Medico, Area, Sede, Usuario])],
   controllers: [MedicosController],
   providers: [MedicosService],
   exports: [MedicosService],

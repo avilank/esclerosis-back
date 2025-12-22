@@ -6,16 +6,17 @@ import { Repository } from 'typeorm';
 import { Medico } from './entities/medico.entity';
 import { Area } from '../areas/entities/area.entity';
 import { Sede } from '../sedes/entities/sede.entity';
+import { Usuario } from '../usuarios/entities/usuario.entity';
 
 @Injectable()
 export class MedicosService {
   constructor(
     @InjectRepository(Medico)
     private readonly medicoRepository: Repository<Medico>,
-
+    
     @InjectRepository(Area)
     private readonly areaRepository: Repository<Area>,
-
+    
     @InjectRepository(Sede)
     private readonly sedeRepository: Repository<Sede>,
   ) {}
@@ -28,7 +29,7 @@ export class MedicosService {
       where: { idSede: createMedicoDto.idSede, isActive: true },
     });
 
-    if (!area || !sede) {
+    if (!area || !sede ) {
       throw new BadRequestException('Area o sede no encontrada');
     }
 
@@ -82,6 +83,6 @@ export class MedicosService {
     if (!medico) {
       throw new BadRequestException('Medico no encontrado');
     }
-    return await this.medicoRepository.update(id, { isActive: false });
+    return await this.medicoRepository.delete(id);
   }
 }

@@ -44,7 +44,6 @@ export class RolesController {
   }
 
   @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id') id: string) {
     return this.rolesService.remove(+id);
   }

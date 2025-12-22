@@ -21,6 +21,9 @@ export class Rol {
   @Column({ name: 'descripcion', length: 500, nullable: true })
   descripcion: string;
 
+  @Column({ type: 'boolean', default: true })
+  isActive: boolean;
+
   @OneToMany(() => Usuario, (usuario) => usuario.rol)
   usuarios: Usuario[];
 
