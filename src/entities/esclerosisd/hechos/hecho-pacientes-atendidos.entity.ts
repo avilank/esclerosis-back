@@ -1,6 +1,6 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { DimIndicadorClinico } from '../dim-indicador.entity';
-import { DimPaciente } from '../dim-paciente.entity';
+import { DimMedico } from '../dim-medico.entity';
 import { DimTiempo } from '../dim-tiempo.entity';
 import { DimOrganizacion } from '../dim-organizacion.entity';
 
@@ -12,8 +12,8 @@ export class HechoPacientesAtendidos {
   @ManyToOne(() => DimIndicadorClinico)
   indicador: DimIndicadorClinico;
 
-  @ManyToOne(() => DimPaciente)
-  paciente: DimPaciente;
+  @ManyToOne(() => DimMedico)
+  medico: DimMedico;
 
   @ManyToOne(() => DimTiempo)
   tiempo: DimTiempo;

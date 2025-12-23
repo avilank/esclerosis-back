@@ -281,7 +281,7 @@ export class AnalyticsEtlsService {
 
   async getHechoPacientesAtendidos(): Promise<HechoPacientesAtendidos[]> {
     return this.hechoPacientesAtendidosRepo.find({
-      relations: ['indicador', 'paciente', 'tiempo', 'organizacion'],
+      relations: ['indicador', 'medico', 'tiempo', 'organizacion'],
     });
   }
 
