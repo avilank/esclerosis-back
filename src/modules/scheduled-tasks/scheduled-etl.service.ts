@@ -1,11 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
-export class ScheduledEtlService {
+export class ScheduledEtlService implements OnModuleInit {
     private readonly logger = new Logger(ScheduledEtlService.name);
     private readonly dbHost: string;
     private readonly dbPort: number;
@@ -29,6 +29,21 @@ export class ScheduledEtlService {
         this.dbPassword = this.configService.get<string>('database.password') || '';
     }
 
+    async onModuleInit() {
+        this.logger.log('🔧 Módulo ScheduledEtlService inicializado');
+        this.logger.log('⚡ Ejecutando ETL al iniciar el servidor...');
+
+        // Ejecutar ETL al iniciar, pero no fallar si hay error para no bloquear el inicio del servidor
+        try {
+            await this.ejecutarEtlDiario();
+        } catch (error) {
+            this.logger.error(
+                `⚠️ Error ejecutando ETL al iniciar servidor: ${error.message}. El servidor continuará iniciando normalmente.`,
+            );
+            this.logger.debug(error.stack);
+        }
+    }
+
     @Cron(CronExpression.EVERY_DAY_AT_2AM)
     async ejecutarEtlDiario() {
         this.logger.log('═══════════════════════════════════════════════════════════');
@@ -48,6 +63,7 @@ export class ScheduledEtlService {
             await this.mergeDimMedico();
             await this.mergeDimModeloIA();
             await this.mergeDimPaciente();
+            await this.mergeDimIndicadoresClinicos();
 
             // Limpiar y reinsertar hechos
             this.logger.log('📌 Paso 3/10: Procesando tablas de hechos...');
@@ -288,6 +304,60 @@ export class ScheduledEtlService {
         }
     }
 
+    private async mergeDimIndicadoresClinicos() {
+        const inicio = Date.now();
+        this.logger.log('   🔄 Ejecutando MERGE DimIndicadoresClinicos...');
+        this.logger.log('   📊 Obteniendo datos de: indicadores_clinicos + categoria_indicadores + diagnostico_indicador_clinico');
+
+        const query = `
+      INSERT INTO "DimIndicadoresClinicos" 
+      ("Indicador_Id", "NombreIndicador", "CategoriaIndicador", "ValorIndicador")
+      SELECT 
+          resultado."idIndicador" AS "Indicador_Id",
+          resultado.nombre AS "NombreIndicador",
+          resultado.categoria_descripcion AS "CategoriaIndicador",
+          CASE 
+              WHEN resultado.valor IS NOT NULL AND resultado.valor ~ '^[0-9]+\\.?[0-9]*$' 
+              THEN CAST(resultado.valor AS DOUBLE PRECISION)
+              ELSE NULL
+          END AS "ValorIndicador"
+      FROM dblink('${this.dblinkName}', 
+        'SELECT 
+            ic."idIndicador",
+            ic.nombre,
+            ci.descripcion AS categoria_descripcion,
+            (SELECT dic.valor
+             FROM diagnostico_indicador_clinico dic
+             WHERE dic."idIndicador" = ic."idIndicador"
+               AND dic.valor IS NOT NULL
+               AND dic.valor ~ ''^[0-9]+\\.?[0-9]*$''
+             ORDER BY dic."fechaMedicion" DESC
+             LIMIT 1) AS valor
+         FROM indicadores_clinicos ic
+         LEFT JOIN categoria_indicadores ci ON ic."idCategoriaIndicador" = ci."idTipoIndicador"
+         WHERE ic."isActive" = true 
+           AND ic.bloqueado = false
+           AND ic.unidad = ''numero'''
+      ) AS resultado("idIndicador" INTEGER, nombre VARCHAR(255), categoria_descripcion VARCHAR(255), valor VARCHAR(255))
+      ON CONFLICT ("Indicador_Id") 
+      DO UPDATE SET
+          "NombreIndicador" = EXCLUDED."NombreIndicador",
+          "CategoriaIndicador" = EXCLUDED."CategoriaIndicador",
+          "ValorIndicador" = EXCLUDED."ValorIndicador";
+    `;
+
+        try {
+            const result = await this.esclerosisdDataSource.query(query);
+            const duracion = Date.now() - inicio;
+            this.logger.log(`   ✅ MERGE DimIndicadoresClinicos completado (${duracion}ms)`);
+            this.logger.debug(`   📊 Resultado: ${JSON.stringify(result)}`);
+        } catch (error) {
+            const duracion = Date.now() - inicio;
+            this.logger.error(`   ❌ Error en MERGE DimIndicadoresClinicos después de ${duracion}ms: ${error.message}`);
+            throw error;
+        }
+    }
+
     private async insertarHechoPacientesAtendidos() {
         const inicio = Date.now();
         this.logger.log('   🔄 Insertando HechoPacientesAtendidos...');
@@ -303,29 +373,29 @@ export class ScheduledEtlService {
             // Esta query es compleja y requiere datos de ambas bases
             const query = `
       INSERT INTO "HechoPacientesAtendidos"
-      ("indicadorIndicadorId", "pacientePacienteId", "tiempoFechaId", 
+      ("indicadorIndicadorId", "medicoMedicoId", "tiempoFechaId", 
        "organizacionOrganizacionId", "CantidadPacientesAtendidos")
       SELECT 
           dind."Indicador_Id" AS "indicadorIndicadorId",
-          dp."Paciente_Id" AS "pacientePacienteId",
+          dmed."Medico_Id" AS "medicoMedicoId",
           dt."Fecha_Id" AS "tiempoFechaId",
           dorg."Organizacion_Id" AS "organizacionOrganizacionId",
           COUNT(DISTINCT datos."idPaciente") AS "CantidadPacientesAtendidos"
       FROM dblink('${this.dblinkName}', 
         'SELECT hc."idPaciente", d."idDiagnostico", dic."idIndicador", 
-                d."fechaDiagnostico", m."idSede"
+                d."fechaDiagnostico", m."idMedico", m."idSede"
          FROM historia_clinica hc
          INNER JOIN diagnostico d ON d."idhistoriaClinica" = hc."idHistoriaClinica"
          INNER JOIN diagnostico_indicador_clinico dic ON dic."idDiagnostico" = d."idDiagnostico"
          INNER JOIN medico m ON m."idMedico" = d."idMedico"'
       ) AS datos("idPaciente" INTEGER, "idDiagnostico" INTEGER, "idIndicador" INTEGER, 
-                 "fechaDiagnostico" DATE, "idSede" INTEGER)
-      INNER JOIN "DimPaciente" dp ON dp."Paciente_Id" = datos."idPaciente"
+                 "fechaDiagnostico" DATE, "idMedico" INTEGER, "idSede" INTEGER)
       INNER JOIN "DimIndicadoresClinicos" dind ON dind."Indicador_Id" = datos."idIndicador"
+      INNER JOIN "DimMedico" dmed ON dmed."Medico_Id" = datos."idMedico"
       INNER JOIN "DimTiempo" dt ON dt."Fecha_Id" = TO_CHAR(datos."fechaDiagnostico", 'YYYYMMDD')::INTEGER
       INNER JOIN "DimOrganizacion" dorg ON dorg."Organizacion_Id" = datos."idSede"
       GROUP BY 
-          dind."Indicador_Id", dp."Paciente_Id", dt."Fecha_Id", dorg."Organizacion_Id";
+          dind."Indicador_Id", dmed."Medico_Id", dt."Fecha_Id", dorg."Organizacion_Id";
     `;
 
             this.logger.log('   📊 Ejecutando INSERT con JOINs complejos...');

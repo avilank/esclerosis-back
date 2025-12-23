@@ -1,4 +1,10 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  JoinColumn,
+} from 'typeorm';
 import { DimIndicadorClinico } from '../dim-indicador.entity';
 import { DimMedico } from '../dim-medico.entity';
 import { DimTiempo } from '../dim-tiempo.entity';
@@ -10,15 +16,19 @@ export class HechoPacientesAtendidos {
   hechoPacienteAtendidoId: number;
 
   @ManyToOne(() => DimIndicadorClinico)
+  @JoinColumn({ name: 'indicadorIndicadorId' })
   indicador: DimIndicadorClinico;
 
   @ManyToOne(() => DimMedico)
+  @JoinColumn({ name: 'medicoMedicoId' })
   medico: DimMedico;
 
   @ManyToOne(() => DimTiempo)
+  @JoinColumn({ name: 'tiempoFechaId' })
   tiempo: DimTiempo;
 
   @ManyToOne(() => DimOrganizacion)
+  @JoinColumn({ name: 'organizacionOrganizacionId' })
   organizacion: DimOrganizacion;
 
   @Column({ name: 'CantidadPacientesAtendidos', type: 'int' })
