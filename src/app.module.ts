@@ -13,6 +13,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { LoggingInterceptor } from './common/interceptors/logger.interceptor';
 import { APP_INTERCEPTOR, APP_FILTER } from '@nestjs/core';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { ScheduledTasksModule } from './modules/scheduled-tasks/scheduled-tasks.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -23,6 +25,7 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
     TypeOrmModule.forRootAsync(esclerosisdTypeOrmConfig),
     JwtModule.registerAsync(jwtConfig),
     BaseModule,
+    ScheduledTasksModule,
   ],
   providers: [
     {
