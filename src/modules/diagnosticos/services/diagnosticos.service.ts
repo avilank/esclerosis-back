@@ -289,13 +289,30 @@ export class DiagnosticosService {
     // Todos los diagnósticos del médico
     const total = diagnosticos.length;
 
-    // Diagnósticos críticos
-    const criticos = diagnosticos.filter(
+    // Obtener el último diagnóstico de cada paciente
+    const ultimosDiagnosticosPorPaciente = new Map<number, Diagnostico>();
+
+    for (const diagnostico of diagnosticos) {
+      if (diagnostico.historiaClinica?.paciente?.idPaciente) {
+        const idPaciente = diagnostico.historiaClinica.paciente.idPaciente;
+
+        // Si no existe un diagnóstico para este paciente, o si este es más reciente
+        if (!ultimosDiagnosticosPorPaciente.has(idPaciente)) {
+          ultimosDiagnosticosPorPaciente.set(idPaciente, diagnostico);
+        }
+      }
+    }
+
+    // Convertir el Map a un array de últimos diagnósticos
+    const ultimosDiagnosticos = Array.from(ultimosDiagnosticosPorPaciente.values());
+
+    // Diagnósticos críticos basados en el último diagnóstico de cada paciente
+    const criticos = ultimosDiagnosticos.filter(
       (d) => d.estadoSalud === 'crítico',
     ).length;
 
-    // Diagnósticos críticos
-    const controlados = diagnosticos.filter(
+    // Diagnósticos controlados basados en el último diagnóstico de cada paciente
+    const controlados = ultimosDiagnosticos.filter(
       (d) => d.estadoSalud !== 'crítico',
     ).length;
 
