@@ -76,14 +76,28 @@ const tratamientos = [
   },
 ];
 
-export async function seedTratamientos(dataSource: DataSource) {
+/**
+ * @param reset Si es true, borra recetas y tratamientos antes de insertar (solo uso manual).
+ */
+export async function seedTratamientos(
+  dataSource: DataSource,
+  options?: { reset?: boolean },
+) {
   const tratamientoRepo = dataSource.getRepository(Tratamiento);
   const recetaRepo = dataSource.getRepository(Receta);
 
-  // Limpieza respetando FKs (delete con where true para evitar criterio vacío)
-  await recetaRepo.createQueryBuilder().delete().where('1=1').execute();
-  await tratamientoRepo.createQueryBuilder().delete().where('1=1').execute();
+  if (options?.reset) {
+    await recetaRepo.createQueryBuilder().delete().where('1=1').execute();
+    await tratamientoRepo.createQueryBuilder().delete().where('1=1').execute();
+  } else {
+    const existentes = await tratamientoRepo.count({ where: { isActive: true } });
+    if (existentes > 0) {
+      console.log(`💊 Ya hay ${existentes} tratamientos activos; seed omitido`);
+      return;
+    }
+  }
 
-  await tratamientoRepo.save(tratamientos);
-  console.log(`💊 ${tratamientos.length} tratamientos creados (bloqueados)`);
+  const rows = tratamientos.map((t) => ({ ...t, isActive: true }));
+  await tratamientoRepo.save(rows);
+  console.log(`💊 ${rows.length} tratamientos creados (catálogo DMT)`);
 }

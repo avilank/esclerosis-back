@@ -2,6 +2,7 @@ import { config } from 'dotenv';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import databaseConfig from '../../config/database.config';
 import { seedIndicadoresClinicos } from './indicadores-clinicos.seed';
+import { seedTratamientos } from './tratamientos.seed';
 import { seedUsuarios } from './usuarios.seed';
 import { CategoriaIndicador } from 'src/modules/indicadores-clinicos/entities/categorias-indicadores.entity';
 import { IndicadorClinico } from 'src/modules/indicadores-clinicos/entities/indicadores-clinicos.entity';
@@ -52,6 +53,7 @@ async function runSeed() {
 
     // Ejecuta los seeders necesarios
     await seedIndicadoresClinicos(dataSource);
+    await seedTratamientos(dataSource);
     await seedUsuarios(dataSource);
 
     console.log('✅ Seeders ejecutados correctamente');

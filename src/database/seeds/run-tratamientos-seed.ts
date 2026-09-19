@@ -48,7 +48,7 @@ async function runSeed() {
     await dataSource.initialize();
     console.log('✅ Conexión establecida');
 
-    await seedTratamientos(dataSource);
+    await seedTratamientos(dataSource, { reset: true });
 
     console.log('✅ Seed de tratamientos ejecutado correctamente');
     await dataSource.destroy();

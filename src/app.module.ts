@@ -3,6 +3,7 @@ import { BaseModule } from './modules/base.module';
 import { ConfigModule } from '@nestjs/config';
 import databaseConfig from './config/database.config';
 import esclerosisdDatabaseConfig from './config/esclerosisd.database.config';
+import openrouterConfig from './config/openrouter.config';
 import { jwtConfig, jwtConfigValues } from './config/jwt.config';
 import {
   typeOrmConfig,
@@ -19,7 +20,12 @@ import { ScheduledTasksModule } from './modules/scheduled-tasks/scheduled-tasks.
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [jwtConfigValues, databaseConfig, esclerosisdDatabaseConfig],
+      load: [
+        jwtConfigValues,
+        databaseConfig,
+        esclerosisdDatabaseConfig,
+        openrouterConfig,
+      ],
     }),
     TypeOrmModule.forRootAsync(typeOrmConfig),
     TypeOrmModule.forRootAsync(esclerosisdTypeOrmConfig),
