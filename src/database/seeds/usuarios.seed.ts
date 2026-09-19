@@ -8,7 +8,8 @@ import { Area } from 'src/modules/areas/entities/area.entity';
 import { Sede } from 'src/modules/sedes/entities/sede.entity';
 
 export async function seedUsuarios(dataSource: DataSource) {
-  // 1. Roles básicos
+  console.log('👥 [3/3] Roles, usuarios, médico y paciente demo...');
+
   const rolesData = [
     { nombre: 'admin', descripcion: 'Acceso total al sistema' },
     { nombre: 'medico', descripcion: 'Rol clínico' },
@@ -113,4 +114,7 @@ export async function seedUsuarios(dataSource: DataSource) {
       ['idMedico'],
     );
   }
+
+  console.log('   ✅ Usuarios demo (password: password123)');
+  console.log('      admin | dr_demo | paciente_demo');
 }

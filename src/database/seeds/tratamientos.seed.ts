@@ -83,6 +83,8 @@ export async function seedTratamientos(
   dataSource: DataSource,
   options?: { reset?: boolean },
 ) {
+  console.log('💊 [2/3] Tratamientos (catálogo DMT)...');
+
   const tratamientoRepo = dataSource.getRepository(Tratamiento);
   const recetaRepo = dataSource.getRepository(Receta);
 
@@ -90,14 +92,16 @@ export async function seedTratamientos(
     await recetaRepo.createQueryBuilder().delete().where('1=1').execute();
     await tratamientoRepo.createQueryBuilder().delete().where('1=1').execute();
   } else {
-    const existentes = await tratamientoRepo.count({ where: { isActive: true } });
+    const existentes = await tratamientoRepo.count({
+      where: { isActive: true },
+    });
     if (existentes > 0) {
-      console.log(`💊 Ya hay ${existentes} tratamientos activos; seed omitido`);
+      console.log(`   ⏭ Ya hay ${existentes} tratamientos activos; omitido`);
       return;
     }
   }
 
   const rows = tratamientos.map((t) => ({ ...t, isActive: true }));
   await tratamientoRepo.save(rows);
-  console.log(`💊 ${rows.length} tratamientos creados (catálogo DMT)`);
+  console.log(`   ✅ ${rows.length} tratamientos creados`);
 }
