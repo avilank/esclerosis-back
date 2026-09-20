@@ -27,25 +27,25 @@ export class AnalyticsEtlsService {
     private readonly sedeRepo: Repository<Sede>,
     @InjectRepository(Receta)
     private readonly recetaRepo: Repository<Receta>,
-    @InjectRepository(DimPaciente, 'esclerosisdConnection')
+    @InjectRepository(DimPaciente)
     private readonly dimPacienteRepo: Repository<DimPaciente>,
-    @InjectRepository(DimMedico, 'esclerosisdConnection')
+    @InjectRepository(DimMedico)
     private readonly dimMedicoRepo: Repository<DimMedico>,
-    @InjectRepository(DimOrganizacion, 'esclerosisdConnection')
+    @InjectRepository(DimOrganizacion)
     private readonly dimOrganizacionRepo: Repository<DimOrganizacion>,
-    @InjectRepository(DimTiempo, 'esclerosisdConnection')
+    @InjectRepository(DimTiempo)
     private readonly dimTiempoRepo: Repository<DimTiempo>,
-    @InjectRepository(DimModeloIA, 'esclerosisdConnection')
+    @InjectRepository(DimModeloIA)
     private readonly dimModeloRepo: Repository<DimModeloIA>,
-    @InjectRepository(DimIndicadorClinico, 'esclerosisdConnection')
+    @InjectRepository(DimIndicadorClinico)
     private readonly dimIndicadorRepo: Repository<DimIndicadorClinico>,
-    @InjectRepository(HechoRecetas, 'esclerosisdConnection')
+    @InjectRepository(HechoRecetas)
     private readonly hechoRecetasRepo: Repository<HechoRecetas>,
-    @InjectRepository(HechoIndicador, 'esclerosisdConnection')
+    @InjectRepository(HechoIndicador)
     private readonly hechoIndicadorRepo: Repository<HechoIndicador>,
-    @InjectRepository(HechoPacientesEM, 'esclerosisdConnection')
+    @InjectRepository(HechoPacientesEM)
     private readonly hechoPacientesEmRepo: Repository<HechoPacientesEM>,
-    @InjectRepository(HechoPacientesAtendidos, 'esclerosisdConnection')
+    @InjectRepository(HechoPacientesAtendidos)
     private readonly hechoPacientesAtendidosRepo: Repository<HechoPacientesAtendidos>,
   ) {}
 
@@ -129,6 +129,10 @@ export class AnalyticsEtlsService {
       if (!existente) {
         const trimestre = Math.floor(fecha.getUTCMonth() / 3) + 1;
         const dim = this.dimTiempoRepo.create({
+          fechaId:
+            fecha.getUTCFullYear() * 10000 +
+            (fecha.getUTCMonth() + 1) * 100 +
+            fecha.getUTCDate(),
           anio: fecha.getUTCFullYear(),
           trimestre,
           mes: fecha.getUTCMonth() + 1,
@@ -183,7 +187,13 @@ export class AnalyticsEtlsService {
         where: { anio, mes, dia },
       });
       if (!dimTiempo) {
-        dimTiempo = this.dimTiempoRepo.create({ anio, mes, dia, trimestre });
+        dimTiempo = this.dimTiempoRepo.create({
+          fechaId: anio * 10000 + mes * 100 + dia,
+          anio,
+          mes,
+          dia,
+          trimestre,
+        });
         dimTiempo = await this.dimTiempoRepo.save(dimTiempo);
       }
 

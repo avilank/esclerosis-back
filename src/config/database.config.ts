@@ -19,7 +19,7 @@ export default registerAs('database', () => ({
   port: parseInt(process.env.DB_PORT || '5432', 10),
   username: process.env.DB_USERNAME || 'postgres',
   password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'esclerosis_db',
+  database: process.env.DB_NAME || 'clinica-bd',
   synchronize: shouldSynchronize(),
   autoLoadEntities: true,
 }));

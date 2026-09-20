@@ -22,7 +22,7 @@ async function postgresDisponible(): Promise<boolean> {
     port: Number.parseInt(process.env.DB_PORT || '5432', 10),
     username: process.env.DB_USERNAME || 'postgres',
     password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'esclerosis_db',
+    database: process.env.DB_NAME || 'clinica-bd',
     connectTimeoutMS: 3000,
   });
   try {

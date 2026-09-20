@@ -5,7 +5,8 @@ API NestJS + TypeORM (PostgreSQL) para SclerK. El cliente es la app Flutter
 
 ## Arranque para un integrante nuevo
 
-1. Crea en Postgres las bases `esclerosis_db` y `esclerosisd` (vacías).
+1. Postgres local con la base `clinica-bd` (usuario `postgres`). Si no existe,
+   el script de migración la crea.
 2. En esta carpeta:
 
 ```bash
@@ -16,11 +17,15 @@ copy .env.example .env
 En Mac/Linux: `cp .env.example .env`. Ajusta usuario/password de Postgres y
 **definí un `JWT_SECRET` propio** en `.env`.
 
-3. Carga **todo** el seed de una vez (indicadores + tratamientos + usuarios demo):
+3. Crea **todo** el esquema en `clinica-bd` (usuarios, roles, clínica y reportes)
+   y carga el seed (indicadores + tratamientos + usuarios demo):
 
 ```bash
+npm run migrate:schema
 npm run seed
 ```
+
+O todo junto: `npm run setup`.
 
 4. Levanta el API:
 
@@ -40,8 +45,10 @@ npm run dev
 
 | Comando | Qué hace |
 |---------|----------|
-| `npm run seed` | Schema + indicadores + tratamientos + usuarios |
+| `npm run migrate:schema` | Crea `clinica-bd` si falta y todas las tablas (auth, clínica, Dim/Hecho) |
+| `npm run seed` | Indicadores + tratamientos + usuarios demo en esa misma base |
 | `npm run seed:tratamientos` | Solo reinicia el catálogo DMT (borra recetas) |
+| `npm run setup` | `migrate:schema` + `seed` |
 | `npm run dev` | API en watch |
 | `npm test` | Tests unitarios y de integración (no necesitan base de datos) |
 | `npm run test:e2e` | E2E contra Postgres (se salta solo si la base no responde) |

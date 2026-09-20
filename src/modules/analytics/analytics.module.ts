@@ -19,22 +19,22 @@ import { AnalyticsController } from './controllers/analytics.controller';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Paciente, Medico, Sede, Receta]),
-    TypeOrmModule.forFeature(
-      [
-        DimPaciente,
-        DimMedico,
-        DimOrganizacion,
-        DimTiempo,
-        DimModeloIA,
-        DimIndicadorClinico,
-        HechoRecetas,
-        HechoIndicador,
-        HechoPacientesEM,
-        HechoPacientesAtendidos,
-      ],
-      'esclerosisdConnection',
-    ),
+    TypeOrmModule.forFeature([
+      Paciente,
+      Medico,
+      Sede,
+      Receta,
+      DimPaciente,
+      DimMedico,
+      DimOrganizacion,
+      DimTiempo,
+      DimModeloIA,
+      DimIndicadorClinico,
+      HechoRecetas,
+      HechoIndicador,
+      HechoPacientesEM,
+      HechoPacientesAtendidos,
+    ]),
   ],
   controllers: [AnalyticsController],
   providers: [AnalyticsEtlsService],

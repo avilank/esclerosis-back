@@ -1,8 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryColumn, Column } from 'typeorm';
 
 @Entity('DimTiempo')
 export class DimTiempo {
-  @PrimaryGeneratedColumn({ name: 'Fecha_Id' })
+  @PrimaryColumn({ name: 'Fecha_Id', type: 'int' })
   fechaId: number;
 
   @Column({ name: 'anio', type: 'int' })

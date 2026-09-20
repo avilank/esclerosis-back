@@ -8,9 +8,10 @@ import {
 } from 'src/common/constants/roles.constant';
 
 /**
- * Data warehouse de reportes. Las LECTURAS las consume la pantalla de reportes
- * de los tres roles; las ESCRITURAS (disparar el ETL, insertar hechos o
- * dimensiones a mano) quedan reservadas al admin.
+ * Reportes (dimensiones y hechos en la misma base operativa). Las LECTURAS
+ * las consume la pantalla de reportes de los tres roles; las ESCRITURAS
+ * (disparar el ETL, insertar hechos o dimensiones a mano) quedan reservadas
+ * al admin.
  *
  * Pendiente: los GET devuelven los hechos de todos los pacientes y el filtrado
  * por paciente se hace en el cliente. Acotarlo requiere rediseñar estos

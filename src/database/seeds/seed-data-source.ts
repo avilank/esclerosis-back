@@ -16,6 +16,16 @@ import { Receta } from 'src/modules/recetas/entities/receta.entity';
 import { Permiso } from 'src/modules/auth/permisos/entities/permiso.entity';
 import { PermisoRol } from 'src/modules/auth/permisos/entities/permiso-rol.entity';
 import { Tratamiento } from 'src/modules/tratamientos/entities/tratamiento.entity';
+import { DimPaciente } from 'src/entities/esclerosisd/dim-paciente.entity';
+import { DimMedico } from 'src/entities/esclerosisd/dim-medico.entity';
+import { DimOrganizacion } from 'src/entities/esclerosisd/dim-organizacion.entity';
+import { DimTiempo } from 'src/entities/esclerosisd/dim-tiempo.entity';
+import { DimModeloIA } from 'src/entities/esclerosisd/dim-modelo-ia.entity';
+import { DimIndicadorClinico } from 'src/entities/esclerosisd/dim-indicador.entity';
+import { HechoRecetas } from 'src/entities/esclerosisd/hechos/hecho-recetas.entity';
+import { HechoIndicador } from 'src/entities/esclerosisd/hechos/hecho-indicador.entity';
+import { HechoPacientesEM } from 'src/entities/esclerosisd/hechos/hecho-pacientes-em.entity';
+import { HechoPacientesAtendidos } from 'src/entities/esclerosisd/hechos/hecho-pacientes-atendidos.entity';
 
 config();
 
@@ -42,6 +52,16 @@ export function createSeedDataSource() {
       Permiso,
       PermisoRol,
       Tratamiento,
+      DimPaciente,
+      DimMedico,
+      DimOrganizacion,
+      DimTiempo,
+      DimModeloIA,
+      DimIndicadorClinico,
+      HechoRecetas,
+      HechoIndicador,
+      HechoPacientesEM,
+      HechoPacientesAtendidos,
     ],
   });
 }
