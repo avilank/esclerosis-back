@@ -24,13 +24,18 @@ export class Diagnostico {
   @Column({ name: 'idMedico' })
   idMedico: number;
 
+  /**
+   * Las columnas `date` de Postgres las devuelve TypeORM como string
+   * ('YYYY-MM-DD'), no como Date. Declararlo `Date` invitaba a llamar metodos
+   * de Date sobre un string (error en tiempo de ejecucion).
+   */
   @Column({ name: 'fechaDiagnostico', type: 'date' })
-  fechaDiagnostico: Date;
+  fechaDiagnostico: string;
 
-  @Column({ name: 'estadoSalud', length: 100})
+  @Column({ name: 'estadoSalud', length: 100 })
   estadoSalud: string;
 
-  @Column({ name: 'gradoEnfermedad', length: 100})
+  @Column({ name: 'gradoEnfermedad', length: 100 })
   gradoEnfermedad: string;
 
   @Column({ name: 'observaciones', type: 'text', nullable: true })

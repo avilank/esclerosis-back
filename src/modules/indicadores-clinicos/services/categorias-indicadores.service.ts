@@ -64,6 +64,11 @@ export class CategoriasIndicadoresService {
     if (!categoriaIndicador) {
       throw new NotFoundException('Categoria indicador no encontrada');
     }
+    if (categoriaIndicador.bloqueado) {
+      throw new BadRequestException(
+        `La categoría "${categoriaIndicador.descripcion}" está bloqueada y no se puede eliminar`,
+      );
+    }
 
     // Borrado lógico de todos los indicadores que pertenecen a esta categoría
     await this.indicadorClinicoRepository
@@ -77,9 +82,10 @@ export class CategoriasIndicadoresService {
     // Borrado lógico de la categoría
     await this.categoriaIndicadorRepository.update(id, { isActive: false });
 
-    return { 
-      message: 'Categoria indicador y sus indicadores asociados han sido eliminados lógicamente',
-      deleted: true 
+    return {
+      message:
+        'Categoria indicador y sus indicadores asociados han sido eliminados lógicamente',
+      deleted: true,
     };
   }
 }

@@ -21,7 +21,12 @@ export class Usuario {
   @Column({ name: 'email', length: 255, unique: true })
   email: string;
 
-  @Column({ name: 'password', length: 255 })
+  /**
+   * `select: false` para que el hash NUNCA salga en un `find`/`findOne` ni en
+   * los joins (`rol.usuarios`, `paciente.usuario`, `medico.usuario` son eager).
+   * El unico lugar que lo necesita es el login, que lo pide con `addSelect`.
+   */
+  @Column({ name: 'password', length: 255, select: false })
   password: string;
 
   @Column({ name: 'estado', type: 'boolean', default: true })

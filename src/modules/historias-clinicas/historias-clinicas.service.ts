@@ -86,7 +86,11 @@ export class HistoriasClinicasService {
   }
 
   async findAll(): Promise<HistoriaClinica[]> {
+    // Sin el filtro `isActive`, las historias de pacientes dados de baja
+    // (UsuariosService.remove las marca inactivas) seguian apareciendo en el
+    // listado administrativo y en el listado de diagnosticos derivado de este.
     const historias = await this.historiaClinicaRepository.find({
+      where: { isActive: true },
       relations: ['paciente', 'diagnosticos'],
       relationLoadStrategy: 'query',
       order: { idHistoriaClinica: 'DESC' },
@@ -106,7 +110,7 @@ export class HistoriasClinicasService {
 
   async findOne(id: number): Promise<HistoriaClinica> {
     const historiaClinica = await this.historiaClinicaRepository.findOne({
-      where: { idHistoriaClinica: id },
+      where: { idHistoriaClinica: id, isActive: true },
       relations: ['paciente', 'diagnosticos', 'diagnosticos.medico'],
       relationLoadStrategy: 'query',
     });
@@ -214,10 +218,7 @@ export class HistoriasClinicasService {
         '(paciente.nombrePaciente ILIKE :term OR paciente.dniPaciente ILIKE :term)',
         { term: searchTerm },
       )
-      // .andWhere('hc.isActive = :isActive', { isActive: true })
-      // .orWhere('diagnosticos.isActive = :diagnosticoActive', {
-      //   diagnosticoActive: true,
-      // })
+      .andWhere('hc.isActive = :isActive', { isActive: true })
       .orderBy('hc.idHistoriaClinica', 'DESC')
       .getMany();
 

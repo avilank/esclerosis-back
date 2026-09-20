@@ -12,9 +12,11 @@ import {
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { LoggingInterceptor } from './common/interceptors/logger.interceptor';
-import { APP_INTERCEPTOR, APP_FILTER } from '@nestjs/core';
+import { APP_INTERCEPTOR, APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { ScheduledTasksModule } from './modules/scheduled-tasks/scheduled-tasks.module';
+import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+import { RolesGuard } from './common/guards/roles.guard';
 
 @Module({
   imports: [
@@ -34,6 +36,16 @@ import { ScheduledTasksModule } from './modules/scheduled-tasks/scheduled-tasks.
     ScheduledTasksModule,
   ],
   providers: [
+    // Orden importante: primero se autentica (rellena request.user) y despues
+    // se autoriza con los @Roles(...) del handler.
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
     {
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor,

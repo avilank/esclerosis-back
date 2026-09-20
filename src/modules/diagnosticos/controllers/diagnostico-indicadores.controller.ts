@@ -6,11 +6,16 @@ import {
   Patch,
   Param,
   Delete,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { DiagnosticoIndicadoresService } from '../services/diagnostico-indicadores.service';
 import { CreateDiagnosticoIndicadoresDto } from '../dto/diagnostico-indicadores/create-diagnostico-indicadores.dto';
 import { UpdateDiagnosticoIndicadoresDto } from '../dto/diagnostico-indicadores/update-diagnostico-indicadores.dto';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { ROL_ADMIN, ROL_MEDICO } from 'src/common/constants/roles.constant';
 
+// Registro de valores clinicos: lo hace el medico al diagnosticar.
+@Roles(ROL_ADMIN, ROL_MEDICO)
 @Controller('diagnostico-indicadores')
 export class DiagnosticoIndicadoresController {
   constructor(
@@ -32,23 +37,23 @@ export class DiagnosticoIndicadoresController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.diagnosticoIndicadoresService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.diagnosticoIndicadoresService.findOne(id);
   }
 
   @Patch(':id')
   update(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateDiagnosticoIndicadoresDto: UpdateDiagnosticoIndicadoresDto,
   ) {
     return this.diagnosticoIndicadoresService.update(
-      +id,
+      id,
       updateDiagnosticoIndicadoresDto,
     );
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.diagnosticoIndicadoresService.remove(+id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.diagnosticoIndicadoresService.remove(id);
   }
 }

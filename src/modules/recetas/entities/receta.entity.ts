@@ -16,7 +16,7 @@ export class Receta {
   @PrimaryGeneratedColumn({ name: 'idReceta' })
   idReceta: number;
 
-  @Column({ name: 'Modelo_IA', length: 255})
+  @Column({ name: 'Modelo_IA', length: 255 })
   Modelo_IA: string;
 
   @Column({ name: 'fechaReceta', type: 'date' })
@@ -26,7 +26,9 @@ export class Receta {
   @JoinColumn({ name: 'idDiagnostico' })
   diagnostico: Diagnostico;
 
-  @ManyToOne(() => Tratamiento, (tratamiento) => tratamiento.recetas, { nullable: false })
+  @ManyToOne(() => Tratamiento, (tratamiento) => tratamiento.recetas, {
+    nullable: false,
+  })
   @JoinColumn({ name: 'idTratamiento' })
   tratamiento: Tratamiento;
 

@@ -27,8 +27,27 @@ export class RecetasService {
     if (!diagnostico || !tratamiento) {
       throw new BadRequestException('Diagnostico o tratamiento no encontrado');
     }
+
+    // La relacion receta-diagnostico es 1 a 1 (UNIQUE en receta.idDiagnostico):
+    // avisamos con un 400 claro en vez de dejar explotar el constraint.
+    const yaExiste = await this.recetaRepository.findOne({
+      where: { diagnostico: { idDiagnostico: createRecetaDto.idDiagnostico } },
+      relations: ['diagnostico'],
+    });
+    if (yaExiste) {
+      throw new BadRequestException(
+        'Este diagnóstico ya tiene una receta registrada',
+      );
+    }
+
+    // Solo los campos propios de la entidad: `idDiagnostico`/`idTratamiento`
+    // son join columns y las relaciones se asignan aparte.
     return this.recetaRepository.save({
-      ...createRecetaDto,
+      Modelo_IA: createRecetaDto.Modelo_IA,
+      fechaReceta: createRecetaDto.fechaReceta,
+      contenido: createRecetaDto.contenido,
+      sustentacion: createRecetaDto.sustentacion,
+      isActive: createRecetaDto.isActive ?? true,
       diagnostico,
       tratamiento,
     });
@@ -84,25 +103,53 @@ export class RecetasService {
   async update(id: number, updateRecetaDto: UpdateRecetaDto) {
     const receta = await this.recetaRepository.findOne({
       where: { idReceta: id, isActive: true },
+      relations: ['diagnostico', 'tratamiento'],
     });
     if (!receta) {
       throw new BadRequestException('Receta no encontrada');
     }
 
-    // Si se actualiza el tratamiento, verificar que existe
-    if (updateRecetaDto.idTratamiento) {
+    // `idDiagnostico`/`idTratamiento` no son columnas de la entidad, son las
+    // join columns de las relaciones. Spreading el DTO tal cual hacia que
+    // TypeORM las descartara y el PATCH respondiera 200 sin cambiar nada:
+    // hay que asignar la relacion.
+    if (updateRecetaDto.idTratamiento !== undefined) {
       const tratamiento = await this.tratamientoRepository.findOne({
         where: { idTratamiento: updateRecetaDto.idTratamiento, isActive: true },
       });
       if (!tratamiento) {
         throw new BadRequestException('Tratamiento no encontrado');
       }
+      receta.tratamiento = tratamiento;
     }
 
-    return this.recetaRepository.save({
-      ...receta,
-      ...updateRecetaDto,
-    });
+    if (updateRecetaDto.idDiagnostico !== undefined) {
+      const diagnostico = await this.diagnosticoRepository.findOne({
+        where: { idDiagnostico: updateRecetaDto.idDiagnostico, isActive: true },
+      });
+      if (!diagnostico) {
+        throw new BadRequestException('Diagnostico no encontrado');
+      }
+      receta.diagnostico = diagnostico;
+    }
+
+    if (updateRecetaDto.Modelo_IA !== undefined) {
+      receta.Modelo_IA = updateRecetaDto.Modelo_IA;
+    }
+    if (updateRecetaDto.fechaReceta !== undefined) {
+      receta.fechaReceta = updateRecetaDto.fechaReceta as unknown as Date;
+    }
+    if (updateRecetaDto.contenido !== undefined) {
+      receta.contenido = updateRecetaDto.contenido;
+    }
+    if (updateRecetaDto.sustentacion !== undefined) {
+      receta.sustentacion = updateRecetaDto.sustentacion;
+    }
+    if (updateRecetaDto.isActive !== undefined) {
+      receta.isActive = updateRecetaDto.isActive;
+    }
+
+    return this.recetaRepository.save(receta);
   }
 
   async remove(id: number) {

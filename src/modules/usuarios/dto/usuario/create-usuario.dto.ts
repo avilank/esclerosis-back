@@ -8,6 +8,9 @@ import {
   MaxLength,
   MinLength,
   IsDateString,
+  Matches,
+  Min,
+  Max,
 } from 'class-validator';
 
 export class CreateUsuarioDto {
@@ -23,8 +26,11 @@ export class CreateUsuarioDto {
 
   @IsString()
   @IsNotEmpty()
-  @MinLength(6)
+  @MinLength(8, { message: 'La contraseña debe tener al menos 8 caracteres' })
   @MaxLength(255)
+  @Matches(/(?=.*[a-zA-Z])(?=.*\d)/, {
+    message: 'La contraseña debe combinar letras y números',
+  })
   password: string;
 
   @IsBoolean()
@@ -48,6 +54,8 @@ export class CreateUsuarioDto {
 
   @IsInt()
   @IsOptional()
+  @Min(0)
+  @Max(120)
   edadPaciente?: number;
 
   @IsString()

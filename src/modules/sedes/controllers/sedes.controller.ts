@@ -10,7 +10,11 @@ import {
 import { SedesService } from '../services/sedes.service';
 import { CreateSedeDto } from '../dto/sede/create-sede.dto';
 import { UpdateSedeDto } from '../dto/sede/update-sede.dto';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { ROL_ADMIN } from 'src/common/constants/roles.constant';
 
+// Modulo de administracion: solo el rol admin.
+@Roles(ROL_ADMIN)
 @Controller('sedes')
 export class SedesController {
   constructor(private readonly sedesService: SedesService) {}

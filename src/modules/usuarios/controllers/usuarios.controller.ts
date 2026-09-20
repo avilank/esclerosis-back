@@ -10,7 +10,11 @@ import {
 import { UsuariosService } from '../services/usuarios.service';
 import { CreateUsuarioDto } from '../dto/usuario/create-usuario.dto';
 import { UpdateUsuarioDto } from '../dto/usuario/update-usuario.dto';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { ROL_ADMIN } from 'src/common/constants/roles.constant';
 
+// Modulo de administracion: solo el rol admin.
+@Roles(ROL_ADMIN)
 @Controller('usuarios')
 export class UsuariosController {
   constructor(private readonly usuariosService: UsuariosService) {}

@@ -4,7 +4,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { IndicadorClinico } from '../entities/indicadores-clinicos.entity';
 import { CategoriaIndicador } from '../entities/categorias-indicadores.entity';
-import { NotFoundException } from '@nestjs/common';
 @Injectable()
 export class IndicadoresClinicosService {
   constructor(
@@ -117,6 +116,11 @@ export class IndicadoresClinicosService {
     });
     if (!indicadorClinico) {
       throw new BadRequestException('Indicador clinico no encontrado');
+    }
+    if (indicadorClinico.bloqueado) {
+      throw new BadRequestException(
+        `El indicador "${indicadorClinico.nombre}" está bloqueado y no se puede eliminar`,
+      );
     }
 
     // Borrado lógico del indicador (sin afectar la categoría)

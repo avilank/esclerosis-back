@@ -1,24 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-interface JwtPayload {
-  id: number;
-  email: string;
-  username: string;
-  rol: string;
-}
+import { JwtPayload } from '../interfaces/jwt-payload.interface';
+
+/** Datos que se firman en el token (sin `iat`/`exp`, que los pone jsonwebtoken). */
+type JwtClaims = Pick<JwtPayload, 'id' | 'email' | 'username' | 'rol'>;
+
 @Injectable()
 export class JwtUtil {
   constructor(private readonly jwtService: JwtService) {}
 
-  async generateToken(payload: JwtPayload) {
+  generateToken(payload: JwtClaims): Promise<string> {
     return this.jwtService.signAsync(payload);
   }
 
-  async verifyToken(token: string) {
-    return this.jwtService.verifyAsync(token);
+  verifyToken(token: string): Promise<JwtPayload> {
+    return this.jwtService.verifyAsync<JwtPayload>(token);
   }
 
-  async decodeToken(token: string) {
-    return this.jwtService.decode(token);
+  decodeToken(token: string): JwtPayload | null {
+    return this.jwtService.decode<JwtPayload | null>(token);
   }
 }

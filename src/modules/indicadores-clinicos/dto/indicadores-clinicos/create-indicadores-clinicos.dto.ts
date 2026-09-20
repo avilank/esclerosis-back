@@ -16,6 +16,7 @@ export class CreateIndicadoresClinicoDto {
   nombre: string;
 
   @IsString()
+  @IsNotEmpty()
   @MaxLength(255)
   descripcion: string;
 

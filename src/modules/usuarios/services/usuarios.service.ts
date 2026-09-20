@@ -7,7 +7,7 @@ import {
 import { CreateUsuarioDto } from '../dto/usuario/create-usuario.dto';
 import { UpdateUsuarioDto } from '../dto/usuario/update-usuario.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, FindOptionsWhere } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Usuario } from '../entities/usuario.entity';
 import { Rol } from '../../auth/roles/entities/role.entity';
 import { Paciente } from '../../pacientes/entities/paciente.entity';
@@ -16,6 +16,8 @@ import { HistoriaClinica } from '../../historias-clinicas/entities/historias-cli
 import { Area } from '../../areas/entities/area.entity';
 import { Sede } from '../../sedes/entities/sede.entity';
 import * as bcrypt from 'bcrypt';
+
+const SALT_ROUNDS = 10;
 
 @Injectable()
 export class UsuariosService {
@@ -84,9 +86,7 @@ export class UsuariosService {
       rol = await this.validateRolIfPresent(createUsuarioDto.idRol);
     }
 
-    // hash password
-    const saltRounds = 10;
-    const hashed = await bcrypt.hash(createUsuarioDto.password, saltRounds);
+    const hashed = await bcrypt.hash(createUsuarioDto.password, SALT_ROUNDS);
 
     const usuario = this.usuarioRepo.create({
       username: createUsuarioDto.username,
@@ -118,9 +118,7 @@ export class UsuariosService {
       rol = await this.validateRolIfPresent(createUsuarioDto.idRol);
     }
 
-    // hash password
-    const saltRounds = 10;
-    const hashed = await bcrypt.hash(createUsuarioDto.password, saltRounds);
+    const hashed = await bcrypt.hash(createUsuarioDto.password, SALT_ROUNDS);
 
     // Crear usuario
     const usuario = this.usuarioRepo.create({
@@ -185,13 +183,16 @@ export class UsuariosService {
       // Validar que se proporcionaron los datos del médico
       if (
         !createUsuarioDto.nombreMedico ||
+        !createUsuarioDto.generoMedico ||
         !createUsuarioDto.idArea ||
         !createUsuarioDto.idSede
       ) {
-        // Si falta algún dato requerido, eliminar el usuario creado y lanzar error
+        // Si falta algún dato requerido, eliminar el usuario creado y lanzar
+        // error. `generoMedico` es NOT NULL en la tabla: sin este chequeo el
+        // insert fallaba con un 500 de Postgres en vez de un 400 legible.
         await this.usuarioRepo.remove(usuarioGuardado);
         throw new BadRequestException(
-          'Para crear un usuario médico se requieren: nombreMedico, idArea e idSede',
+          'Para crear un usuario médico se requieren: nombreMedico, generoMedico, idArea e idSede',
         );
       }
 
@@ -276,7 +277,7 @@ export class UsuariosService {
       where: { idUsuario: id, estado: true },
       relations: ['rol', 'paciente', 'medico'],
     });
-    
+
     if (!usuario) {
       throw new NotFoundException(`Usuario ${id} no encontrado`);
     }
@@ -307,23 +308,25 @@ export class UsuariosService {
     const esMedico =
       nombreRolActual === 'médico' || nombreRolActual === 'medico';
 
-    // hash password if updated
-    if (updateUsuarioDto.password) {
-      const saltRounds = 10;
-      (updateUsuarioDto as any).password = await bcrypt.hash(
-        updateUsuarioDto.password,
-        saltRounds,
-      );
-    }
-
-    // Actualizar datos básicos del usuario (sin cambiar el rol)
+    // Actualizar datos básicos del usuario (sin cambiar el rol).
+    // El hash NO se toca si no vino una password nueva: `usuario.password` es
+    // `select: false`, asi que aca llega `undefined` y reescribirlo borraria
+    // la credencial.
     Object.assign(usuario, {
       username: updateUsuarioDto.username ?? usuario.username,
       email: updateUsuarioDto.email ?? usuario.email,
-      password: (updateUsuarioDto as any).password ?? usuario.password,
       estado: updateUsuarioDto.estado ?? usuario.estado,
       // No se actualiza idRol si ya tiene uno asignado
     });
+
+    if (updateUsuarioDto.password) {
+      usuario.password = await bcrypt.hash(
+        updateUsuarioDto.password,
+        SALT_ROUNDS,
+      );
+    } else {
+      delete (usuario as Partial<Usuario>).password;
+    }
     const usuarioActualizado = await this.usuarioRepo.save(usuario);
 
     // Si el usuario es "Paciente", actualizar datos del paciente
@@ -419,11 +422,12 @@ export class UsuariosService {
         // Si no tiene médico pero es rol médico, crear médico
         if (
           !updateUsuarioDto.nombreMedico ||
+          !updateUsuarioDto.generoMedico ||
           !updateUsuarioDto.idArea ||
           !updateUsuarioDto.idSede
         ) {
           throw new BadRequestException(
-            'Para crear un médico se requieren: nombreMedico, idArea e idSede',
+            'Para crear un médico se requieren: nombreMedico, generoMedico, idArea e idSede',
           );
         }
 
@@ -496,7 +500,7 @@ export class UsuariosService {
       where: { idUsuario: id, estado: true },
       relations: ['rol', 'paciente', 'medico'],
     });
-    
+
     if (!usuario) {
       throw new NotFoundException(`Usuario ${id} no encontrado`);
     }
@@ -511,29 +515,36 @@ export class UsuariosService {
 
     // Si es médico, ocultar los datos del médico
     if (esMedico && usuario.medico) {
-      await this.medicoRepo.update(usuario.medico.idMedico, { isActive: false });
+      await this.medicoRepo.update(usuario.medico.idMedico, {
+        isActive: false,
+      });
     }
 
     // Si es paciente, ocultar los datos del paciente y la historia clínica
     if (esPaciente && usuario.paciente) {
       // Ocultar paciente
-      await this.pacienteRepo.update(usuario.paciente.idPaciente, { isActive: false });
-      
+      await this.pacienteRepo.update(usuario.paciente.idPaciente, {
+        isActive: false,
+      });
+
       // Ocultar historia clínica
       const historiaClinica = await this.historiaClinicaRepo.findOne({
         where: { idPaciente: usuario.paciente.idPaciente },
       });
       if (historiaClinica) {
-        await this.historiaClinicaRepo.update(historiaClinica.idHistoriaClinica, { 
-          isActive: false,
-          estado: 'inactiva',
-        });
+        await this.historiaClinicaRepo.update(
+          historiaClinica.idHistoriaClinica,
+          {
+            isActive: false,
+            estado: 'inactiva',
+          },
+        );
       }
     }
 
-    return { 
+    return {
       message: 'Usuario eliminado lógicamente',
-      deleted: true 
+      deleted: true,
     };
   }
 }

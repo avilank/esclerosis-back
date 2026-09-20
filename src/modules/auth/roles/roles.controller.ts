@@ -12,7 +12,11 @@ import {
 import { RolesService } from './roles.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { ROL_ADMIN } from 'src/common/constants/roles.constant';
 
+// Modulo de administracion: solo el rol admin.
+@Roles(ROL_ADMIN)
 @Controller('roles')
 export class RolesController {
   constructor(private readonly rolesService: RolesService) {}

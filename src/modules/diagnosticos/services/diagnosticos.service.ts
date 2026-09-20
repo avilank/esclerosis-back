@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Diagnostico } from 'src/modules/models/models';
 import { HistoriaClinica } from 'src/modules/models/models';
 import { Medico } from 'src/modules/models/models';
+import { Receta } from 'src/modules/recetas/entities/receta.entity';
 import { CreateDiagnosticoDto } from '../dto/create-diagnostico.dto';
 import { UpdateDiagnosticoDto } from '../dto/update-diagnostico.dto';
 
@@ -16,7 +17,7 @@ export class DiagnosticosService {
     private readonly historiaClinicaRepository: Repository<HistoriaClinica>,
     @InjectRepository(Medico)
     private readonly medicoRepository: Repository<Medico>,
-  ) { }
+  ) {}
 
   async create(
     createDiagnosticoDto: CreateDiagnosticoDto,
@@ -83,11 +84,7 @@ export class DiagnosticosService {
       .createQueryBuilder('diagnostico')
       .leftJoinAndSelect('diagnostico.historiaClinica', 'historiaClinica')
       .leftJoinAndSelect('historiaClinica.paciente', 'paciente')
-      .leftJoinAndSelect(
-        'diagnostico.medico',
-        'medico',
-      
-      )
+      .leftJoinAndSelect('diagnostico.medico', 'medico')
       .leftJoinAndSelect(
         'diagnostico.recetas',
         'recetas',
@@ -124,10 +121,7 @@ export class DiagnosticosService {
       .createQueryBuilder('diagnostico')
       .leftJoinAndSelect('diagnostico.historiaClinica', 'historiaClinica')
       .leftJoinAndSelect('historiaClinica.paciente', 'paciente')
-      .leftJoinAndSelect(
-        'diagnostico.medico',
-        'medico'
-      )
+      .leftJoinAndSelect('diagnostico.medico', 'medico')
       .leftJoinAndSelect(
         'diagnostico.recetas',
         'recetas',
@@ -304,7 +298,9 @@ export class DiagnosticosService {
     }
 
     // Convertir el Map a un array de últimos diagnósticos
-    const ultimosDiagnosticos = Array.from(ultimosDiagnosticosPorPaciente.values());
+    const ultimosDiagnosticos = Array.from(
+      ultimosDiagnosticosPorPaciente.values(),
+    );
 
     // Diagnósticos críticos basados en el último diagnóstico de cada paciente
     const criticos = ultimosDiagnosticos.filter(
@@ -379,46 +375,20 @@ export class DiagnosticosService {
     // Total de diagnósticos
     const totalDiagnosticos = diagnosticos.length;
 
-    // Obtener la última receta según fecha de todas las recetas del paciente
-    // Recopilar todas las recetas de todos los diagnósticos
-    const todasLasRecetas: Array<{ receta: any; fechaReceta: Date }> = [];
+    // Recetas de todos los diagnósticos del paciente. La consulta de arriba ya
+    // trae `recetas` y `recetas.tratamiento`: antes se volvía a consultar cada
+    // diagnóstico dentro del loop (N+1 innecesario).
+    const todasLasRecetas: Array<{ receta: Receta; fechaReceta: Date }> = [];
 
     for (const diagnostico of diagnosticos) {
-      const diagnosticoCompleto = await this.diagnosticoRepository
-        .createQueryBuilder('diagnostico')
-        .leftJoinAndSelect(
-          'diagnostico.recetas',
-          'recetas',
-          'recetas.isActive = :isActive',
-          { isActive: true },
-        )
-        .leftJoinAndSelect(
-          'recetas.tratamiento',
-          'tratamiento',
-          'tratamiento.isActive = :isActive',
-          { isActive: true },
-        )
-        .where(
-          'diagnostico.idDiagnostico = :idDiagnostico AND diagnostico.isActive = :isActive',
-          {
-            idDiagnostico: diagnostico.idDiagnostico,
-            isActive: true,
-          },
-        )
-        .getOne();
-
-      if (
-        diagnosticoCompleto?.recetas &&
-        diagnosticoCompleto.recetas.length > 0
-      ) {
-        diagnosticoCompleto.recetas.forEach((receta) => {
-          todasLasRecetas.push({
-            receta,
-            fechaReceta:
-              receta.fechaReceta instanceof Date
-                ? receta.fechaReceta
-                : new Date(receta.fechaReceta),
-          });
+      for (const receta of diagnostico.recetas ?? []) {
+        todasLasRecetas.push({
+          receta,
+          // Las columnas `date` llegan como string desde Postgres.
+          fechaReceta:
+            receta.fechaReceta instanceof Date
+              ? receta.fechaReceta
+              : new Date(receta.fechaReceta),
         });
       }
     }
@@ -492,35 +462,36 @@ export class DiagnosticosService {
 
     // Preparar objeto de actualización para usar update directamente
     const updateData: Partial<Diagnostico> = {};
-    
+
     if (updateDiagnosticoDto.idhistoriaClinica !== undefined) {
       updateData.idhistoriaClinica = updateDiagnosticoDto.idhistoriaClinica;
     }
-    
+
     if (updateDiagnosticoDto.idMedico !== undefined) {
       updateData.idMedico = updateDiagnosticoDto.idMedico;
     }
-    
+
     if (updateDiagnosticoDto.fechaDiagnostico !== undefined) {
       updateData.fechaDiagnostico = updateDiagnosticoDto.fechaDiagnostico;
     }
-    
+
     if (updateDiagnosticoDto.estadoSalud !== undefined) {
       updateData.estadoSalud = updateDiagnosticoDto.estadoSalud;
     }
-    
+
     if (updateDiagnosticoDto.gradoEnfermedad !== undefined) {
       updateData.gradoEnfermedad = updateDiagnosticoDto.gradoEnfermedad;
     }
-    
+
     if (updateDiagnosticoDto.observaciones !== undefined) {
       updateData.observaciones = updateDiagnosticoDto.observaciones;
     }
-    
+
     if (updateDiagnosticoDto.es_diagnostico_inicial !== undefined) {
-      updateData.es_diagnostico_inicial = updateDiagnosticoDto.es_diagnostico_inicial;
+      updateData.es_diagnostico_inicial =
+        updateDiagnosticoDto.es_diagnostico_inicial;
     }
-    
+
     // Usar update para forzar la actualización en la base de datos
     await this.diagnosticoRepository.update(id, updateData);
 

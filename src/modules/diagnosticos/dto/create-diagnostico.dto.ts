@@ -2,11 +2,15 @@ import {
   IsInt,
   IsNotEmpty,
   IsString,
-  IsDate,
+  IsDateString,
   IsOptional,
   IsBoolean,
+  IsIn,
   MaxLength,
 } from 'class-validator';
+
+/** Valores que ofrece el selector del formulario de diagnostico en la app. */
+export const ESTADOS_SALUD = ['leve', 'moderado', 'severo', 'crítico'] as const;
 
 export class CreateDiagnosticoDto {
   @IsInt()
@@ -17,13 +21,18 @@ export class CreateDiagnosticoDto {
   @IsNotEmpty()
   idMedico: number;
 
-  @IsDate()
+  // El cliente manda la fecha como string ISO, no como objeto Date: con
+  // @IsDate() la validacion fallaba siempre al activar el ValidationPipe.
+  @IsDateString()
   @IsNotEmpty()
-  fechaDiagnostico: Date;
+  fechaDiagnostico: string;
 
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
+  @IsIn(ESTADOS_SALUD, {
+    message: `estadoSalud debe ser uno de: ${ESTADOS_SALUD.join(', ')}`,
+  })
   estadoSalud: string;
 
   @IsString()

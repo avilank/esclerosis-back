@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateTratamientoDto } from '../dto/tratamiento/create-tratamiento.dto';
 import { UpdateTratamientoDto } from '../dto/tratamiento/update-tratamiento.dto';
 import { Tratamiento } from '../entities/tratamiento.entity';
@@ -32,13 +36,28 @@ export class TratamientosService {
 
   async update(id: number, updateTratamientoDto: UpdateTratamientoDto) {
     const tratamiento = await this.findOne(id);
+    this.assertNoBloqueado(tratamiento);
     Object.assign(tratamiento, updateTratamientoDto);
     return this.tratamientoRepo.save(tratamiento);
   }
 
   async remove(id: number) {
     const tratamiento = await this.findOne(id);
+    this.assertNoBloqueado(tratamiento);
     await this.tratamientoRepo.update(id, { isActive: false });
-    return { deleted: true };
+    return { message: 'Tratamiento eliminado lógicamente', deleted: true };
+  }
+
+  /**
+   * Los tratamientos del catalogo base (DMT sembrados con `bloqueado: true`)
+   * no se pueden editar ni borrar: son los que usa el asistente de
+   * prescripcion, y sin ellos responde 422 "No hay tratamientos activos".
+   */
+  private assertNoBloqueado(tratamiento: Tratamiento) {
+    if (tratamiento.bloqueado) {
+      throw new BadRequestException(
+        `El tratamiento "${tratamiento.nombre}" es parte del catálogo base y no se puede modificar ni eliminar`,
+      );
+    }
   }
 }

@@ -13,7 +13,11 @@ import { PermisosService } from '../services/permisos.service';
 import { CreatePermisoDto } from '../dto/permiso/create-permiso.dto';
 import { UpdatePermisoDto } from '../dto/permiso/update-permiso.dto';
 import { CreatePermisoRolDto } from '../dto/permiso-rol/create-permiso-rol.dto';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { ROL_ADMIN } from 'src/common/constants/roles.constant';
 
+// Modulo de administracion: solo el rol admin.
+@Roles(ROL_ADMIN)
 @Controller('permisos')
 export class PermisosController {
   constructor(private readonly permisosService: PermisosService) {}
