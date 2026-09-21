@@ -35,7 +35,7 @@ export async function seedUsuarios(dataSource: DataSource) {
     },
     {
       username: 'dr_demo',
-      email: 'dr.demo@esclerosis.com ',
+      email: 'dr.demo@esclerosis.com',
       password,
       estado: true,
       idRol: rolByName['medico']?.idRol,
