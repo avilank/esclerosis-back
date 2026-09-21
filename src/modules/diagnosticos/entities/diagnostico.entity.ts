@@ -4,6 +4,7 @@ import {
   Column,
   ManyToOne,
   OneToMany,
+  OneToOne,
   JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
@@ -12,6 +13,7 @@ import { HistoriaClinica } from '../../historias-clinicas/entities/historias-cli
 import { Medico } from '../../medicos/entities/medico.entity';
 import { Receta } from '../../recetas/entities/receta.entity';
 import { DiagnosticoIndicadorClinico } from './diagnostico-indicadores.entity';
+import { Cita } from '../../citas/entities/cita.entity';
 
 @Entity('diagnostico')
 export class Diagnostico {
@@ -47,6 +49,14 @@ export class Diagnostico {
   @Column({ name: 'isActive', type: 'boolean', default: true })
   isActive: boolean;
 
+  /**
+   * Cita que originó el diagnóstico. Opcional: los diagnósticos anteriores al
+   * módulo de citas (y los que crea el admin a mano) quedan en `null`.
+   * Un índice único parcial garantiza una sola cita por diagnóstico.
+   */
+  @Column({ name: 'idCita', type: 'int', nullable: true })
+  idCita: number | null;
+
   @ManyToOne(
     () => HistoriaClinica,
     (historiaClinica) => historiaClinica.diagnosticos,
@@ -57,6 +67,10 @@ export class Diagnostico {
   @ManyToOne(() => Medico, (medico) => medico.diagnosticos)
   @JoinColumn({ name: 'idMedico' })
   medico: Medico;
+
+  @OneToOne(() => Cita, (cita) => cita.diagnostico)
+  @JoinColumn({ name: 'idCita' })
+  cita: Cita | null;
 
   @OneToMany(() => Receta, (receta) => receta.diagnostico)
   recetas: Receta[];

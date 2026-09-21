@@ -36,11 +36,12 @@ npm run dev
 
 ### Usuarios demo (password: `password123`)
 
-| Usuario         | Rol      |
-|-----------------|----------|
-| `admin`         | admin    |
-| `dr_demo`       | medico   |
-| `paciente_demo` | paciente |
+| Usuario            | Rol        |
+|--------------------|------------|
+| `admin`            | admin      |
+| `dr_demo`          | medico     |
+| `paciente_demo`    | paciente   |
+| `secretaria_demo`  | secretaria |
 
 ### Scripts
 
@@ -92,6 +93,34 @@ Las dos son idempotentes (limpian antes de cargar), pero **no producen el mismo
 resultado**: el reporte depende de cuál corrió último. Conviene quedarse con una
 sola; la de SQL directo es la que se ejecuta sola.
 
+## Módulo de citas
+
+La secretaria agenda; el médico atiende. Flujo:
+
+1. La secretaria elige un paciente del padrón o lo da de alta en el acto
+   (`POST /pacientes/con-usuario`, que crea usuario + ficha + historia clínica
+   en una transacción).
+2. Agenda la cita (`POST /citas`). Se rechaza con **409** si el médico o el
+   paciente ya tienen otra cita viva en esa misma `fechaCita` + `horaCita`.
+3. El médico ve su agenda, pulsa «Atender» y crea el diagnóstico con `idCita`.
+   En la misma transacción la cita pasa a `atendida`.
+
+Reglas:
+
+- Estados: `programada` → `cancelada` | `no_asistio` | `atendida`. Cualquier
+  otra transición devuelve 409.
+- `atendida` **no** se puede setear a mano: solo la marca el diagnóstico
+  (`PATCH /citas/:id/estado` acepta únicamente `cancelada` y `no_asistio`).
+- Una cita produce como máximo un diagnóstico (UNIQUE sobre
+  `diagnostico.idCita`; los `idCita` nulos no compiten entre sí).
+- **Un médico ya no puede crear diagnósticos sueltos**: sin `idCita` recibe 403.
+  El admin sí, para cargas manuales y para los diagnósticos históricos.
+- `horaCita` viaja como `HH:mm`. La columna es `time` y TypeORM la hidrata con
+  segundos, así que el servicio la normaliza al devolverla.
+- `idSede` se copia de la sede del médico si no se envía.
+- El borrado es lógico: `isActive=false` + `estado=cancelada`, y solo desde
+  `programada`.
+
 ## Seguridad
 
 ### Autenticación
@@ -115,20 +144,31 @@ node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 controller. Sin `@Roles(...)` basta con estar autenticado. La comparación
 normaliza acentos y mayúsculas, así que `"Médico"` y `"medico"` son el mismo rol.
 
-| Recurso | admin | medico | paciente |
-|---|---|---|---|
-| `/usuarios`, `/roles`, `/permisos`, `/sedes`, `/areas`, `/pacientes` | ✅ | ❌ | ❌ |
-| `/tratamientos`, `/indicadores-clinicos`, `/categorias-indicadores`, `/medicos` | ✅ completo | 🔍 solo lectura | ❌ |
-| `/historias-clinicas` (listar, crear, editar) | ✅ | ✅ | ❌ |
-| `DELETE /historias-clinicas/:id` | ✅ | ❌ | ❌ |
-| `/historias-clinicas/paciente/:idPaciente` | ✅ | ✅ | 🔒 solo la propia |
-| `/diagnosticos` (crear, editar, borrar) | ✅ | ✅ | ❌ |
-| `/diagnosticos/:id` | ✅ | ✅ | 🔒 solo los propios |
-| `/diagnosticos/medico/:idMedico`, `/diagnosticos/stats/:idMedico` | ✅ | 🔒 solo los propios | ❌ |
-| `/diagnosticos/stats/paciente/:idPaciente` | ✅ | ✅ | 🔒 solo el propio |
-| `/diagnostico-indicadores`, `/recetas`, `/ia/recetas/sugerir` | ✅ | ✅ | ❌ |
-| `GET /analytics/etl/*` (reportes) | ✅ | ✅ | ✅ |
-| `POST /analytics/etl/*` (disparar ETL) | ✅ | ❌ | ❌ |
+| Recurso | admin | secretaria | medico | paciente |
+|---|---|---|---|---|
+| `/usuarios`, `/roles`, `/permisos`, `/sedes`, `/areas` | ✅ | ❌ | ❌ | ❌ |
+| `GET /pacientes`, `GET /pacientes/:id` | ✅ | ✅ | ❌ | ❌ |
+| `POST /pacientes/con-usuario` (alta completa) | ✅ | ✅ | ❌ | ❌ |
+| `POST/PATCH/DELETE /pacientes` (ficha suelta) | ✅ | ❌ | ❌ | ❌ |
+| `/tratamientos`, `/indicadores-clinicos`, `/categorias-indicadores` | ✅ completo | ❌ | 🔍 solo lectura | ❌ |
+| `GET /medicos` | ✅ | ✅ | ✅ | ❌ |
+| `POST/PATCH/DELETE /medicos` | ✅ | ❌ | ❌ | ❌ |
+| `GET /historias-clinicas`, `GET /historias-clinicas/search` | ✅ | 🔍 solo lectura | ✅ | ❌ |
+| `POST/PATCH /historias-clinicas` | ✅ | ❌ | ✅ | ❌ |
+| `DELETE /historias-clinicas/:id` | ✅ | ❌ | ❌ | ❌ |
+| `/historias-clinicas/paciente/:idPaciente` | ✅ | ❌ | ✅ | 🔒 solo la propia |
+| `POST /citas`, `PATCH /citas/:id`, `DELETE /citas/:id` | ✅ | ✅ | ❌ | ❌ |
+| `GET /citas`, `GET /citas/:id` | ✅ | ✅ | 🔒 solo las suyas | 🔒 solo las propias |
+| `GET /citas/hoy` | ✅ | ✅ | 🔒 solo las suyas | ❌ |
+| `PATCH /citas/:id/estado` | ✅ | ✅ | 🔒 solo `no_asistio` en las suyas | ❌ |
+| `POST /diagnosticos` | ✅ sin cita | ❌ | 🔒 solo con `idCita` de una cita suya | ❌ |
+| `PATCH/DELETE /diagnosticos/:id` | ✅ | ❌ | 🔒 solo los propios | ❌ |
+| `/diagnosticos/:id` | ✅ | ❌ | ✅ | 🔒 solo los propios |
+| `/diagnosticos/medico/:idMedico`, `/diagnosticos/stats/:idMedico` | ✅ | ❌ | 🔒 solo los propios | ❌ |
+| `/diagnosticos/stats/paciente/:idPaciente` | ✅ | ❌ | ✅ | 🔒 solo el propio |
+| `/diagnostico-indicadores`, `/recetas`, `/ia/recetas/sugerir` | ✅ | ❌ | ✅ | ❌ |
+| `GET /analytics/etl/*` (reportes) | ✅ | ❌ | ✅ | ✅ |
+| `POST /analytics/etl/*` (disparar ETL) | ✅ | ❌ | ❌ | ❌ |
 
 🔒 = además del rol, se valida **pertenencia**: un paciente solo accede a su
 propio `idPaciente` y un médico a su propio `idMedico` (`common/utils/ownership.ts`).

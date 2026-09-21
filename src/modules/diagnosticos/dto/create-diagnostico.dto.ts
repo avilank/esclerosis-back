@@ -51,4 +51,12 @@ export class CreateDiagnosticoDto {
   @IsBoolean()
   @IsOptional()
   isActive?: boolean = true;
+
+  /**
+   * Cita que se está atendiendo. Si viene, el diagnóstico queda ligado a ella y
+   * la cita pasa a `atendida`. Un médico solo puede diagnosticar con cita.
+   */
+  @IsInt()
+  @IsOptional()
+  idCita?: number;
 }

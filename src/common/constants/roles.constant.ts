@@ -7,11 +7,13 @@
 export const ROL_ADMIN = 'admin';
 export const ROL_MEDICO = 'medico';
 export const ROL_PACIENTE = 'paciente';
+export const ROL_SECRETARIA = 'secretaria';
 
 export type RolName =
   | typeof ROL_ADMIN
   | typeof ROL_MEDICO
-  | typeof ROL_PACIENTE;
+  | typeof ROL_PACIENTE
+  | typeof ROL_SECRETARIA;
 
 /** `"Médico"` -> `"medico"`, para comparar roles sin depender de acentos/mayusculas. */
 export function normalizeRol(rol?: string | null): string {

@@ -11,11 +11,15 @@ import { MedicosService } from './medicos.service';
 import { CreateMedicoDto } from './dto/create-medico.dto';
 import { UpdateMedicoDto } from './dto/update-medico.dto';
 import { Roles } from 'src/common/decorators/roles.decorator';
-import { ROL_ADMIN, ROL_MEDICO } from 'src/common/constants/roles.constant';
+import {
+  ROL_ADMIN,
+  ROL_MEDICO,
+  ROL_SECRETARIA,
+} from 'src/common/constants/roles.constant';
 
-// Lectura para admin y medico; la escritura queda restringida a admin
-// en cada handler (el medico solo consulta estos catalogos).
-@Roles(ROL_ADMIN, ROL_MEDICO)
+// Lectura para admin, medico y secretaria (necesita el listado para agendar);
+// la escritura queda restringida a admin en cada handler.
+@Roles(ROL_ADMIN, ROL_MEDICO, ROL_SECRETARIA)
 @Controller('medicos')
 export class MedicosController {
   constructor(private readonly medicosService: MedicosService) {}

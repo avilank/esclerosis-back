@@ -20,6 +20,7 @@ import {
   ROL_ADMIN,
   ROL_MEDICO,
   ROL_PACIENTE,
+  ROL_SECRETARIA,
 } from 'src/common/constants/roles.constant';
 import type { JwtPayload } from 'src/common/interfaces/jwt-payload.interface';
 import {
@@ -27,6 +28,8 @@ import {
   assertPacienteOwnsId,
 } from 'src/common/utils/ownership';
 
+// La secretaria solo LEE (listado y búsqueda), para elegir el paciente al
+// agendar. Crear/editar/borrar historias sigue siendo de admin y médico.
 @Roles(ROL_ADMIN, ROL_MEDICO)
 @Controller('historias-clinicas')
 export class HistoriasClinicasController {
@@ -40,11 +43,13 @@ export class HistoriasClinicasController {
     return this.historiasClinicasService.create(createHistoriasClinicaDto);
   }
 
+  @Roles(ROL_ADMIN, ROL_MEDICO, ROL_SECRETARIA)
   @Get()
   findAll() {
     return this.historiasClinicasService.findAll();
   }
 
+  @Roles(ROL_ADMIN, ROL_MEDICO, ROL_SECRETARIA)
   @Get('search')
   async search(@Query('q') q: string) {
     if (!q || q.trim() === '') {

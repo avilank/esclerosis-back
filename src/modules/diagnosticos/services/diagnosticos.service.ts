@@ -1,10 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Diagnostico } from 'src/modules/models/models';
 import { HistoriaClinica } from 'src/modules/models/models';
 import { Medico } from 'src/modules/models/models';
 import { Receta } from 'src/modules/recetas/entities/receta.entity';
+import { Cita } from 'src/modules/citas/entities/cita.entity';
 import { aFechaIso } from 'src/common/utils/fecha';
 import { CreateDiagnosticoDto } from '../dto/create-diagnostico.dto';
 import { UpdateDiagnosticoDto } from '../dto/update-diagnostico.dto';
@@ -18,7 +23,50 @@ export class DiagnosticosService {
     private readonly historiaClinicaRepository: Repository<HistoriaClinica>,
     @InjectRepository(Medico)
     private readonly medicoRepository: Repository<Medico>,
+    @InjectRepository(Cita)
+    private readonly citaRepository: Repository<Cita>,
   ) {}
+
+  /**
+   * Reglas del diagnóstico que nace de una cita:
+   * - la cita tiene que estar activa y `programada` (una cita atendida ya tiene
+   *   su diagnóstico; el índice único sobre `idCita` lo refuerza en la BD);
+   * - el médico del DTO tiene que ser el de la cita;
+   * - la historia del DTO tiene que ser la del paciente de la cita.
+   */
+  private async validarCitaParaDiagnostico(
+    idCita: number,
+    dto: CreateDiagnosticoDto,
+  ): Promise<void> {
+    const cita = await this.citaRepository.findOne({
+      where: { idCita, isActive: true },
+    });
+    if (!cita) {
+      throw new NotFoundException(`Cita con ID ${idCita} no encontrada`);
+    }
+    if (cita.estado !== 'programada') {
+      throw new ConflictException(
+        `La cita ${idCita} está en estado "${cita.estado}": no se puede diagnosticar`,
+      );
+    }
+    if (cita.idMedico !== dto.idMedico) {
+      throw new ConflictException(
+        `La cita ${idCita} está asignada a otro médico`,
+      );
+    }
+
+    const historiaDelPaciente = await this.historiaClinicaRepository.findOne({
+      where: { idPaciente: cita.idPaciente, isActive: true },
+    });
+    if (
+      !historiaDelPaciente ||
+      historiaDelPaciente.idHistoriaClinica !== dto.idhistoriaClinica
+    ) {
+      throw new ConflictException(
+        `La historia clínica enviada no corresponde al paciente de la cita ${idCita}`,
+      );
+    }
+  }
 
   async create(
     createDiagnosticoDto: CreateDiagnosticoDto,
@@ -48,13 +96,31 @@ export class DiagnosticosService {
       );
     }
 
-    const diagnostico = this.diagnosticoRepository.create({
-      ...createDiagnosticoDto,
-      es_diagnostico_inicial:
-        createDiagnosticoDto.es_diagnostico_inicial || false,
-    });
+    const idCita = createDiagnosticoDto.idCita ?? null;
+    if (idCita != null) {
+      await this.validarCitaParaDiagnostico(idCita, createDiagnosticoDto);
+    }
 
-    const saved = await this.diagnosticoRepository.save(diagnostico);
+    // Transacción: el diagnóstico y el paso de la cita a `atendida` tienen que
+    // ocurrir juntos, para que no quede una cita atendida sin diagnóstico (ni
+    // al revés).
+    const saved = await this.diagnosticoRepository.manager.transaction(
+      async (manager) => {
+        const creado = await manager.save(
+          manager.create(Diagnostico, {
+            ...createDiagnosticoDto,
+            idCita,
+            es_diagnostico_inicial:
+              createDiagnosticoDto.es_diagnostico_inicial || false,
+          }),
+        );
+
+        if (idCita != null) {
+          await manager.update(Cita, idCita, { estado: 'atendida' });
+        }
+        return creado;
+      },
+    );
 
     // Retornar con las relaciones cargadas
     const diagnosticoConRelaciones = await this.diagnosticoRepository.findOne({
@@ -63,6 +129,7 @@ export class DiagnosticosService {
         'historiaClinica',
         'historiaClinica.paciente',
         'medico',
+        'cita',
         'recetas',
         'recetas.tratamiento',
         'IndicadoresClinicos',

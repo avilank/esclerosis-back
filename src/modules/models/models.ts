@@ -4,6 +4,7 @@ export * from 'src/modules/medicos/entities/medico.entity';
 export * from 'src/modules/diagnosticos/entities/diagnostico.entity';
 export * from 'src/modules/diagnosticos/entities/diagnostico-indicadores.entity';
 export * from 'src/modules/recetas/entities/receta.entity';
+export * from 'src/modules/citas/entities/cita.entity';
 export * from 'src/modules/tratamientos/entities/tratamiento.entity';
 export * from 'src/modules/areas/entities/area.entity';
 export * from 'src/modules/sedes/entities/sede.entity';

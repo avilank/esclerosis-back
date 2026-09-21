@@ -9,6 +9,8 @@ import { Medico } from '../medicos/entities/medico.entity';
 import { IndicadorClinico } from '../indicadores-clinicos/entities/indicadores-clinicos.entity';
 import { DiagnosticoIndicadoresController } from './controllers/diagnostico-indicadores.controller';
 import { DiagnosticoIndicadoresService } from './services/diagnostico-indicadores.service';
+import { CitasModule } from '../citas/citas.module';
+import { Cita } from '../citas/entities/cita.entity';
 
 @Module({
   imports: [
@@ -18,7 +20,9 @@ import { DiagnosticoIndicadoresService } from './services/diagnostico-indicadore
       HistoriaClinica,
       Medico,
       IndicadorClinico,
+      Cita,
     ]),
+    CitasModule,
   ],
   controllers: [DiagnosticosController, DiagnosticoIndicadoresController],
   providers: [DiagnosticosService, DiagnosticoIndicadoresService],

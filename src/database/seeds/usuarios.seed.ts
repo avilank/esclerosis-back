@@ -15,6 +15,10 @@ export async function seedUsuarios(dataSource: DataSource) {
     { nombre: 'admin', descripcion: 'Acceso total al sistema' },
     { nombre: 'medico', descripcion: 'Rol clínico' },
     { nombre: 'paciente', descripcion: 'Usuario paciente' },
+    {
+      nombre: 'secretaria',
+      descripcion: 'Agenda citas y da de alta pacientes',
+    },
   ];
 
   await dataSource.manager.upsert(Rol, rolesData, ['nombre']);
@@ -35,7 +39,7 @@ export async function seedUsuarios(dataSource: DataSource) {
     },
     {
       username: 'dr_demo',
-      email: 'dr.demo@esclerosis.com ',
+      email: 'dr.demo@esclerosis.com',
       password,
       estado: true,
       idRol: rolByName['medico']?.idRol,
@@ -46,6 +50,14 @@ export async function seedUsuarios(dataSource: DataSource) {
       password,
       estado: true,
       idRol: rolByName['paciente']?.idRol,
+    },
+    // La secretaria es un usuario base: no lleva ficha de paciente ni de médico.
+    {
+      username: 'secretaria_demo',
+      email: 'secretaria.demo@esclerosis.com',
+      password,
+      estado: true,
+      idRol: rolByName['secretaria']?.idRol,
     },
   ];
 
@@ -101,9 +113,12 @@ export async function seedUsuarios(dataSource: DataSource) {
     // queda vacío y el formulario de diagnóstico no tiene a quién asignar
     // (tanto UsuariosService.create como AuthService.register la crean junto
     // con el paciente; el seed tiene que hacer lo mismo).
-    const historiaExistente = await dataSource.manager.findOne(HistoriaClinica, {
-      where: { idPaciente: pacienteUser.idUsuario },
-    });
+    const historiaExistente = await dataSource.manager.findOne(
+      HistoriaClinica,
+      {
+        where: { idPaciente: pacienteUser.idUsuario },
+      },
+    );
     if (!historiaExistente) {
       await dataSource.manager.save(
         dataSource.manager.create(HistoriaClinica, {
@@ -133,5 +148,5 @@ export async function seedUsuarios(dataSource: DataSource) {
   }
 
   console.log('   ✅ Usuarios demo (password: password123)');
-  console.log('      admin | dr_demo | paciente_demo');
+  console.log('      admin | dr_demo | paciente_demo | secretaria_demo');
 }

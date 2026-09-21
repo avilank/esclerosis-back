@@ -17,6 +17,7 @@ import { UpdateDiagnosticoDto } from '../dto/update-diagnostico.dto';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import {
+  normalizeRol,
   ROL_ADMIN,
   ROL_MEDICO,
   ROL_PACIENTE,
@@ -42,6 +43,17 @@ export class DiagnosticosController {
     // Un medico solo firma diagnosticos a su propio nombre (el admin puede
     // registrarlos a nombre de cualquier medico).
     assertMedicoOwnsId(user, createDiagnosticoDto.idMedico);
+
+    // El medico diagnostica atendiendo una cita: sin `idCita` no hay
+    // diagnostico huerfano. El admin si puede registrarlos a mano.
+    if (
+      normalizeRol(user.rol) === ROL_MEDICO &&
+      createDiagnosticoDto.idCita == null
+    ) {
+      throw new ForbiddenException(
+        'Un médico solo puede crear un diagnóstico atendiendo una cita (falta idCita)',
+      );
+    }
     return this.diagnosticosService.create(createDiagnosticoDto);
   }
 

@@ -16,6 +16,7 @@ import { Receta } from 'src/modules/recetas/entities/receta.entity';
 import { Permiso } from 'src/modules/auth/permisos/entities/permiso.entity';
 import { PermisoRol } from 'src/modules/auth/permisos/entities/permiso-rol.entity';
 import { Tratamiento } from 'src/modules/tratamientos/entities/tratamiento.entity';
+import { Cita } from 'src/modules/citas/entities/cita.entity';
 import { DimPaciente } from 'src/entities/esclerosisd/dim-paciente.entity';
 import { DimMedico } from 'src/entities/esclerosisd/dim-medico.entity';
 import { DimOrganizacion } from 'src/entities/esclerosisd/dim-organizacion.entity';
@@ -52,6 +53,7 @@ export function createSeedDataSource() {
       Permiso,
       PermisoRol,
       Tratamiento,
+      Cita,
       DimPaciente,
       DimMedico,
       DimOrganizacion,

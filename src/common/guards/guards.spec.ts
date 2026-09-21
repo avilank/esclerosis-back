@@ -5,7 +5,11 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 import { RolesGuard } from './roles.guard';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { ROLES_KEY } from '../decorators/roles.decorator';
-import { ROL_ADMIN, ROL_MEDICO } from '../constants/roles.constant';
+import {
+  ROL_ADMIN,
+  ROL_MEDICO,
+  ROL_SECRETARIA,
+} from '../constants/roles.constant';
 import { assertMedicoOwnsId, assertPacienteOwnsId } from '../utils/ownership';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
 
@@ -118,6 +122,22 @@ describe('RolesGuard', () => {
     expect(
       guard.canActivate(fakeContext({ user: { id: 1, rol: 'Médico' } })),
     ).toBe(true);
+  });
+
+  it('la secretaria pasa un endpoint de @Roles(ROL_SECRETARIA)', () => {
+    const guard = new RolesGuard(
+      fakeReflector({ [ROLES_KEY]: [ROL_ADMIN, ROL_SECRETARIA] }),
+    );
+    expect(
+      guard.canActivate(fakeContext({ user: { id: 1, rol: ROL_SECRETARIA } })),
+    ).toBe(true);
+  });
+
+  it('la secretaria NO pasa un endpoint admin-only', () => {
+    const guard = new RolesGuard(fakeReflector({ [ROLES_KEY]: [ROL_ADMIN] }));
+    expect(() =>
+      guard.canActivate(fakeContext({ user: { id: 1, rol: ROL_SECRETARIA } })),
+    ).toThrow(ForbiddenException);
   });
 
   it('bloquea cuando no hay usuario en el request', () => {

@@ -10,6 +10,7 @@ import {
   ROL_ADMIN,
   ROL_MEDICO,
   ROL_PACIENTE,
+  ROL_SECRETARIA,
 } from '../constants/roles.constant';
 import { UsuariosController } from 'src/modules/usuarios/controllers/usuarios.controller';
 import { UsuariosService } from 'src/modules/usuarios/services/usuarios.service';
@@ -22,6 +23,12 @@ import { AuthService } from 'src/modules/auth/authentication/services/authentica
 import { Usuario } from 'src/modules/usuarios/entities/usuario.entity';
 import { DiagnosticosController } from 'src/modules/diagnosticos/controllers/diagnosticos.controller';
 import { DiagnosticosService } from 'src/modules/diagnosticos/services/diagnosticos.service';
+import { CitasController } from 'src/modules/citas/controllers/citas.controller';
+import { CitasService } from 'src/modules/citas/services/citas.service';
+import { PacientesController } from 'src/modules/pacientes/pacientes.controller';
+import { PacientesService } from 'src/modules/pacientes/pacientes.service';
+import { MedicosController } from 'src/modules/medicos/medicos.controller';
+import { MedicosService } from 'src/modules/medicos/medicos.service';
 
 const SECRET = 'test_secret_integration';
 
@@ -81,6 +88,37 @@ describe('Capa de seguridad (integración HTTP)', () => {
     remove: jest.fn().mockResolvedValue(undefined),
   };
 
+  // La cita 1 es del medico 9, paciente 5, y esta programada.
+  const citasService = {
+    create: jest.fn().mockResolvedValue({ idCita: 1 }),
+    findAll: jest.fn().mockResolvedValue([]),
+    findOne: jest.fn().mockResolvedValue({
+      idCita: 1,
+      idMedico: 9,
+      idPaciente: 5,
+      estado: 'programada',
+    }),
+    update: jest.fn().mockResolvedValue({ idCita: 1 }),
+    cambiarEstado: jest.fn().mockResolvedValue({ idCita: 1 }),
+    remove: jest.fn().mockResolvedValue({ deleted: true }),
+    hoy: jest.fn().mockReturnValue('2026-09-21'),
+  };
+  const pacientesService = {
+    createConUsuario: jest.fn().mockResolvedValue({ idPaciente: 20 }),
+    create: jest.fn().mockResolvedValue({ idPaciente: 20 }),
+    findAll: jest.fn().mockResolvedValue([]),
+    findOne: jest.fn().mockResolvedValue({ idPaciente: 20 }),
+    update: jest.fn().mockResolvedValue({ idPaciente: 20 }),
+    remove: jest.fn().mockResolvedValue({ deleted: true }),
+  };
+  const medicosService = {
+    create: jest.fn().mockResolvedValue({ idMedico: 9 }),
+    findAll: jest.fn().mockResolvedValue([]),
+    findOne: jest.fn().mockResolvedValue({ idMedico: 9 }),
+    update: jest.fn().mockResolvedValue({ idMedico: 9 }),
+    remove: jest.fn().mockResolvedValue({ deleted: true }),
+  };
+
   const token = (rol: string, id = 1) =>
     jwt.sign({ id, email: 'a@b.com', username: 'u', rol });
 
@@ -93,6 +131,9 @@ describe('Capa de seguridad (integración HTTP)', () => {
         HistoriasClinicasController,
         TratamientosController,
         DiagnosticosController,
+        CitasController,
+        PacientesController,
+        MedicosController,
       ],
       providers: [
         { provide: APP_GUARD, useClass: JwtAuthGuard },
@@ -101,6 +142,9 @@ describe('Capa de seguridad (integración HTTP)', () => {
         { provide: HistoriasClinicasService, useValue: historiasService },
         { provide: TratamientosService, useValue: tratamientosService },
         { provide: DiagnosticosService, useValue: diagnosticosService },
+        { provide: CitasService, useValue: citasService },
+        { provide: PacientesService, useValue: pacientesService },
+        { provide: MedicosService, useValue: medicosService },
         { provide: AuthService, useValue: authService },
         { provide: getRepositoryToken(Usuario), useValue: {} },
       ],
@@ -240,13 +284,16 @@ describe('Capa de seguridad (integración HTTP)', () => {
         .expect(403);
     });
 
-    it('un médico sí puede firmar a su propio nombre -> 201', async () => {
+    // Desde el módulo de citas, el médico firma a su propio nombre Y atendiendo
+    // una cita suya (`idCita`); sin cita es 403 (ver «diagnostico ligado a cita»).
+    it('un médico sí puede firmar a su propio nombre, con su cita -> 201', async () => {
       await request(app.getHttpServer())
         .post('/api/diagnosticos')
         .set('Authorization', `Bearer ${token(ROL_MEDICO, 9)}`)
         .send({
           idhistoriaClinica: 1,
           idMedico: 9,
+          idCita: 1,
           fechaDiagnostico: '2026-01-15',
           estadoSalud: 'leve',
           gradoEnfermedad: 'RR',
@@ -322,6 +369,243 @@ describe('Capa de seguridad (integración HTTP)', () => {
       });
       expect(recibido).not.toHaveProperty('idTratamiento');
       expect(recibido).not.toHaveProperty('campoInventado');
+    });
+  });
+
+  describe('citas: rol secretaria', () => {
+    const nuevaCita = {
+      idPaciente: 5,
+      idMedico: 9,
+      fechaCita: '2026-10-01',
+      horaCita: '09:00',
+      motivo: 'control',
+    };
+
+    it('la secretaria agenda una cita -> 201', async () => {
+      await request(app.getHttpServer())
+        .post('/api/citas')
+        .set('Authorization', `Bearer ${token(ROL_SECRETARIA, 4)}`)
+        .send(nuevaCita)
+        .expect(201);
+    });
+
+    it('guarda al usuario del token como creador de la cita', async () => {
+      citasService.create.mockClear();
+      await request(app.getHttpServer())
+        .post('/api/citas')
+        .set('Authorization', `Bearer ${token(ROL_SECRETARIA, 4)}`)
+        .send(nuevaCita)
+        .expect(201);
+      expect(citasService.create.mock.calls[0][1]).toBe(4);
+    });
+
+    it('un medico NO agenda citas -> 403', async () => {
+      await request(app.getHttpServer())
+        .post('/api/citas')
+        .set('Authorization', `Bearer ${token(ROL_MEDICO, 9)}`)
+        .send(nuevaCita)
+        .expect(403);
+    });
+
+    it('un paciente NO agenda citas -> 403', async () => {
+      await request(app.getHttpServer())
+        .post('/api/citas')
+        .set('Authorization', `Bearer ${token(ROL_PACIENTE, 5)}`)
+        .send(nuevaCita)
+        .expect(403);
+    });
+
+    it('hora con formato invalido -> 400', async () => {
+      await request(app.getHttpServer())
+        .post('/api/citas')
+        .set('Authorization', `Bearer ${token(ROL_SECRETARIA, 4)}`)
+        .send({ ...nuevaCita, horaCita: '9am' })
+        .expect(400);
+    });
+
+    it('la secretaria da de alta un paciente completo -> 201', async () => {
+      await request(app.getHttpServer())
+        .post('/api/pacientes/con-usuario')
+        .set('Authorization', `Bearer ${token(ROL_SECRETARIA, 4)}`)
+        .send({
+          username: 'nuevo_pac',
+          email: 'nuevo@demo.com',
+          password: 'password123',
+          dniPaciente: '12345678',
+          nombrePaciente: 'Nuevo Paciente',
+          edadPaciente: 40,
+          generoPaciente: 'Femenino',
+          fechaNacimiento: '1986-05-04',
+        })
+        .expect(201);
+    });
+
+    it('la secretaria lee pacientes, medicos e historias -> 200', async () => {
+      const t = `Bearer ${token(ROL_SECRETARIA, 4)}`;
+      await request(app.getHttpServer())
+        .get('/api/pacientes')
+        .set('Authorization', t)
+        .expect(200);
+      await request(app.getHttpServer())
+        .get('/api/medicos')
+        .set('Authorization', t)
+        .expect(200);
+      await request(app.getHttpServer())
+        .get('/api/historias-clinicas')
+        .set('Authorization', t)
+        .expect(200);
+    });
+
+    it('la secretaria NO entra a usuarios, diagnosticos ni catalogos -> 403', async () => {
+      const t = `Bearer ${token(ROL_SECRETARIA, 4)}`;
+      await request(app.getHttpServer())
+        .post('/api/usuarios')
+        .set('Authorization', t)
+        .send({ username: 'x', email: 'x@d.com', password: 'password123' })
+        .expect(403);
+      await request(app.getHttpServer())
+        .post('/api/diagnosticos')
+        .set('Authorization', t)
+        .send({})
+        .expect(403);
+      await request(app.getHttpServer())
+        .post('/api/tratamientos')
+        .set('Authorization', t)
+        .send({ nombre: 'x', descripcion: 'y' })
+        .expect(403);
+      await request(app.getHttpServer())
+        .delete('/api/historias-clinicas/1')
+        .set('Authorization', t)
+        .expect(403);
+      await request(app.getHttpServer())
+        .post('/api/pacientes')
+        .set('Authorization', t)
+        .send({})
+        .expect(403);
+    });
+  });
+
+  describe('citas: medico y paciente', () => {
+    it('el medico lista sus citas -> 200 y se fuerza su idMedico', async () => {
+      citasService.findAll.mockClear();
+      await request(app.getHttpServer())
+        .get('/api/citas?idMedico=99')
+        .set('Authorization', `Bearer ${token(ROL_MEDICO, 9)}`)
+        .expect(200);
+      // Ignora el idMedico de la query y usa el del token.
+      expect(citasService.findAll.mock.calls[0][0]).toMatchObject({
+        idMedico: 9,
+      });
+    });
+
+    it('el paciente lista sus citas -> 200 y se fuerza su idPaciente', async () => {
+      citasService.findAll.mockClear();
+      await request(app.getHttpServer())
+        .get('/api/citas?idPaciente=77')
+        .set('Authorization', `Bearer ${token(ROL_PACIENTE, 5)}`)
+        .expect(200);
+      expect(citasService.findAll.mock.calls[0][0]).toMatchObject({
+        idPaciente: 5,
+      });
+    });
+
+    it('el paciente 6 no abre la cita del paciente 5 -> 403', async () => {
+      await request(app.getHttpServer())
+        .get('/api/citas/1')
+        .set('Authorization', `Bearer ${token(ROL_PACIENTE, 6)}`)
+        .expect(403);
+    });
+
+    it('el paciente 5 si abre su cita -> 200', async () => {
+      await request(app.getHttpServer())
+        .get('/api/citas/1')
+        .set('Authorization', `Bearer ${token(ROL_PACIENTE, 5)}`)
+        .expect(200);
+    });
+
+    it('el medico marca no_asistio en su cita -> 200', async () => {
+      await request(app.getHttpServer())
+        .patch('/api/citas/1/estado')
+        .set('Authorization', `Bearer ${token(ROL_MEDICO, 9)}`)
+        .send({ estado: 'no_asistio' })
+        .expect(200);
+    });
+
+    it('el medico NO puede cancelar -> 403', async () => {
+      await request(app.getHttpServer())
+        .patch('/api/citas/1/estado')
+        .set('Authorization', `Bearer ${token(ROL_MEDICO, 9)}`)
+        .send({ estado: 'cancelada' })
+        .expect(403);
+    });
+
+    it('no se puede setear "atendida" a mano -> 400', async () => {
+      await request(app.getHttpServer())
+        .patch('/api/citas/1/estado')
+        .set('Authorization', `Bearer ${token(ROL_SECRETARIA, 4)}`)
+        .send({ estado: 'atendida' })
+        .expect(400);
+    });
+
+    it('el medico NO reprograma ni borra citas -> 403', async () => {
+      const t = `Bearer ${token(ROL_MEDICO, 9)}`;
+      await request(app.getHttpServer())
+        .patch('/api/citas/1')
+        .set('Authorization', t)
+        .send({ fechaCita: '2026-10-02' })
+        .expect(403);
+      await request(app.getHttpServer())
+        .delete('/api/citas/1')
+        .set('Authorization', t)
+        .expect(403);
+    });
+  });
+
+  describe('diagnostico ligado a cita', () => {
+    const base = {
+      idhistoriaClinica: 1,
+      idMedico: 9,
+      fechaDiagnostico: '2026-09-21',
+      estadoSalud: 'leve',
+      gradoEnfermedad: 'RR',
+    };
+
+    it('el medico diagnostica CON idCita -> 201', async () => {
+      await request(app.getHttpServer())
+        .post('/api/diagnosticos')
+        .set('Authorization', `Bearer ${token(ROL_MEDICO, 9)}`)
+        .send({ ...base, idCita: 1 })
+        .expect(201);
+    });
+
+    it('el medico SIN idCita -> 403 (no hay diagnosticos huerfanos)', async () => {
+      await request(app.getHttpServer())
+        .post('/api/diagnosticos')
+        .set('Authorization', `Bearer ${token(ROL_MEDICO, 9)}`)
+        .send(base)
+        .expect(403);
+    });
+
+    it('el admin sigue pudiendo diagnosticar sin cita -> 201', async () => {
+      await request(app.getHttpServer())
+        .post('/api/diagnosticos')
+        .set('Authorization', `Bearer ${token(ROL_ADMIN, 1)}`)
+        .send(base)
+        .expect(201);
+    });
+
+    it('idCita llega al servicio', async () => {
+      diagnosticosService.create.mockClear();
+      await request(app.getHttpServer())
+        .post('/api/diagnosticos')
+        .set('Authorization', `Bearer ${token(ROL_MEDICO, 9)}`)
+        .send({ ...base, idCita: 1 })
+        .expect(201);
+      const dto = diagnosticosService.create.mock.calls[0][0] as Record<
+        string,
+        unknown
+      >;
+      expect(dto.idCita).toBe(1);
     });
   });
 });
