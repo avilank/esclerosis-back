@@ -20,12 +20,17 @@ export class HistoriaClinica {
   @Column({ name: 'estado', length: 50, default: 'activa' })
   estado: string;
 
+  /**
+   * Columna `date`: TypeORM la hidrata como string 'YYYY-MM-DD', no como Date.
+   * Declararla `Date` invitaba a llamarle metodos de Date y reventar en runtime
+   * (ver common/utils/fecha.ts).
+   */
   @Column({
     name: 'fechaIngreso',
     type: 'date',
     default: () => 'CURRENT_DATE',
   })
-  fechaIngreso: Date;
+  fechaIngreso: string;
 
   @Column({ name: 'isActive', type: 'boolean', default: true })
   isActive: boolean;

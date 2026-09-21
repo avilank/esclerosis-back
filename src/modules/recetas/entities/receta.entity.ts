@@ -19,8 +19,13 @@ export class Receta {
   @Column({ name: 'Modelo_IA', length: 255 })
   Modelo_IA: string;
 
+  /**
+   * Columna `date`: TypeORM la hidrata como string 'YYYY-MM-DD', no como Date.
+   * Declararla `Date` invitaba a llamarle metodos de Date y reventar en runtime
+   * (ver common/utils/fecha.ts).
+   */
   @Column({ name: 'fechaReceta', type: 'date' })
-  fechaReceta: Date;
+  fechaReceta: string;
 
   @OneToOne(() => Diagnostico, (diagnostico) => diagnostico.recetas)
   @JoinColumn({ name: 'idDiagnostico' })

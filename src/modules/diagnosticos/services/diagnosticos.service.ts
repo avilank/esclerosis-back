@@ -5,6 +5,7 @@ import { Diagnostico } from 'src/modules/models/models';
 import { HistoriaClinica } from 'src/modules/models/models';
 import { Medico } from 'src/modules/models/models';
 import { Receta } from 'src/modules/recetas/entities/receta.entity';
+import { aFechaIso } from 'src/common/utils/fecha';
 import { CreateDiagnosticoDto } from '../dto/create-diagnostico.dto';
 import { UpdateDiagnosticoDto } from '../dto/update-diagnostico.dto';
 
@@ -378,25 +379,20 @@ export class DiagnosticosService {
     // Recetas de todos los diagnósticos del paciente. La consulta de arriba ya
     // trae `recetas` y `recetas.tratamiento`: antes se volvía a consultar cada
     // diagnóstico dentro del loop (N+1 innecesario).
-    const todasLasRecetas: Array<{ receta: Receta; fechaReceta: Date }> = [];
+    // `fechaReceta` es una columna `date`: llega como 'YYYY-MM-DD', que ya
+    // ordena bien lexicograficamente (no hace falta construir Dates).
+    const todasLasRecetas: Array<{ receta: Receta; fechaReceta: string }> = [];
 
     for (const diagnostico of diagnosticos) {
       for (const receta of diagnostico.recetas ?? []) {
-        todasLasRecetas.push({
-          receta,
-          // Las columnas `date` llegan como string desde Postgres.
-          fechaReceta:
-            receta.fechaReceta instanceof Date
-              ? receta.fechaReceta
-              : new Date(receta.fechaReceta),
-        });
+        const fechaReceta = aFechaIso(receta.fechaReceta);
+        if (!fechaReceta) continue;
+        todasLasRecetas.push({ receta, fechaReceta });
       }
     }
 
-    // Ordenar todas las recetas por fecha descendente y tomar la primera
-    todasLasRecetas.sort(
-      (a, b) => b.fechaReceta.getTime() - a.fechaReceta.getTime(),
-    );
+    // Ordenar por fecha descendente y tomar la primera
+    todasLasRecetas.sort((a, b) => b.fechaReceta.localeCompare(a.fechaReceta));
 
     let tratamientoActual: {
       nombre: string;
@@ -405,16 +401,13 @@ export class DiagnosticosService {
     } | null = null;
 
     if (todasLasRecetas.length > 0) {
-      const ultimaReceta = todasLasRecetas[0].receta;
+      const { receta: ultimaReceta, fechaReceta } = todasLasRecetas[0];
 
       if (ultimaReceta?.tratamiento) {
         tratamientoActual = {
           nombre: ultimaReceta.tratamiento.nombre,
           contenido: ultimaReceta.contenido || '',
-          fechaReceta:
-            ultimaReceta.fechaReceta instanceof Date
-              ? ultimaReceta.fechaReceta.toISOString().split('T')[0]
-              : new Date(ultimaReceta.fechaReceta).toISOString().split('T')[0],
+          fechaReceta,
         };
       }
     }
@@ -429,7 +422,8 @@ export class DiagnosticosService {
     id: number,
     updateDiagnosticoDto: UpdateDiagnosticoDto,
   ): Promise<Diagnostico> {
-    const diagnostico = await this.findOne(id);
+    // Valida que exista y esté activo (lanza 404 si no).
+    await this.findOne(id);
 
     // Si se actualiza la historia clínica, verificar que existe
     if (updateDiagnosticoDto.idhistoriaClinica) {
@@ -500,7 +494,8 @@ export class DiagnosticosService {
   }
 
   async remove(id: number): Promise<void> {
-    const diagnostico = await this.findOne(id);
+    // Valida que exista y esté activo (lanza 404 si no).
+    await this.findOne(id);
     await this.diagnosticoRepository.update(id, { isActive: false });
   }
 }

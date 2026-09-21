@@ -21,7 +21,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "seed": "ts-node -r tsconfig-paths/register src/database/seeds/run-seed.ts",
     "seed:tratamientos": "ts-node -r tsconfig-paths/register src/database/seeds/run-tratamientos-seed.ts",
-    "migrate:schema": "ts-node -r tsconfig-paths/register src/database/migrations/run-reportes-migration.ts",
+    "migrate:schema": "ts-node -r tsconfig-paths/register src/database/scripts/run-reportes-migration.ts",
     "migrate:reportes": "npm run migrate:schema",
     "setup": "npm run migrate:schema && npm run seed"
   },

@@ -6,6 +6,7 @@ import { Paciente } from 'src/modules/pacientes/entities/paciente.entity';
 import { Medico } from 'src/modules/medicos/entities/medico.entity';
 import { Area } from 'src/modules/areas/entities/area.entity';
 import { Sede } from 'src/modules/sedes/entities/sede.entity';
+import { HistoriaClinica } from 'src/modules/historias-clinicas/entities/historias-clinica.entity';
 
 export async function seedUsuarios(dataSource: DataSource) {
   console.log('👥 [3/3] Roles, usuarios, médico y paciente demo...');
@@ -34,7 +35,7 @@ export async function seedUsuarios(dataSource: DataSource) {
     },
     {
       username: 'dr_demo',
-      email: 'dr.demo@esclerosis.com',
+      email: 'dr.demo@esclerosis.com ',
       password,
       estado: true,
       idRol: rolByName['medico']?.idRol,
@@ -95,6 +96,22 @@ export async function seedUsuarios(dataSource: DataSource) {
       ],
       ['idPaciente'],
     );
+
+    // Historia clínica del paciente demo. Sin esto el listado de historias
+    // queda vacío y el formulario de diagnóstico no tiene a quién asignar
+    // (tanto UsuariosService.create como AuthService.register la crean junto
+    // con el paciente; el seed tiene que hacer lo mismo).
+    const historiaExistente = await dataSource.manager.findOne(HistoriaClinica, {
+      where: { idPaciente: pacienteUser.idUsuario },
+    });
+    if (!historiaExistente) {
+      await dataSource.manager.save(
+        dataSource.manager.create(HistoriaClinica, {
+          idPaciente: pacienteUser.idUsuario,
+          estado: 'activa',
+        }),
+      );
+    }
   }
 
   // 5. Médico ligado a su usuario, área y sede

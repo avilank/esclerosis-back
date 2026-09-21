@@ -3,7 +3,17 @@ import { existsSync, readFileSync } from 'fs';
 import { resolve } from 'path';
 import { DataSource } from 'typeorm';
 
+/**
+ * Script de arranque del esquema. Vive en `database/scripts/` y NO en
+ * `database/migrations/`: el glob de `migrations` en typeorm.config.ts importa
+ * todos los `.ts` de esa carpeta, y este archivo se ejecuta al importarse
+ * (tiene un `main()` de nivel superior y un `process.exit`). Estando ahi, la
+ * suite e2e disparaba la migracion completa como efecto colateral.
+ */
 config({ path: resolve(__dirname, '../../../.env') });
+
+/** Los .sql siguen en database/migrations/. */
+const SQL_DIR = resolve(__dirname, '../migrations');
 
 const host = process.env.DB_HOST || 'localhost';
 const port = parseInt(process.env.DB_PORT || '5432', 10);
@@ -34,7 +44,7 @@ async function ensureDatabase(): Promise<void> {
   const admin = createConnection('postgres');
   await admin.initialize();
   try {
-    const exists = await admin.query(
+    const exists: unknown[] = await admin.query(
       'SELECT 1 FROM pg_database WHERE datname = $1',
       [dbName],
     );
@@ -50,7 +60,7 @@ async function ensureDatabase(): Promise<void> {
 }
 
 async function runSqlFile(fileName: string, label: string): Promise<void> {
-  const sqlPath = resolve(__dirname, fileName);
+  const sqlPath = resolve(SQL_DIR, fileName);
   if (!existsSync(sqlPath)) {
     throw new Error(`No se encontró ${sqlPath}`);
   }
@@ -67,7 +77,9 @@ async function runSqlFile(fileName: string, label: string): Promise<void> {
 }
 
 async function main() {
-  console.log(`Migrando esquema completo a ${username}@${host}:${port}/${database}`);
+  console.log(
+    `Migrando esquema completo a ${username}@${host}:${port}/${database}`,
+  );
   await ensureDatabase();
   await runSqlFile(
     'create_clinica_bd_schema.sql',
@@ -79,7 +91,8 @@ async function main() {
   );
 }
 
-main().catch((error) => {
-  console.error('Error migrando reportes:', error.message);
+main().catch((error: unknown) => {
+  const mensaje = error instanceof Error ? error.message : String(error);
+  console.error('Error migrando el esquema:', mensaje);
   process.exit(1);
 });

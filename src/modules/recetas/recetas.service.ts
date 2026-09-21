@@ -137,7 +137,7 @@ export class RecetasService {
       receta.Modelo_IA = updateRecetaDto.Modelo_IA;
     }
     if (updateRecetaDto.fechaReceta !== undefined) {
-      receta.fechaReceta = updateRecetaDto.fechaReceta as unknown as Date;
+      receta.fechaReceta = updateRecetaDto.fechaReceta;
     }
     if (updateRecetaDto.contenido !== undefined) {
       receta.contenido = updateRecetaDto.contenido;

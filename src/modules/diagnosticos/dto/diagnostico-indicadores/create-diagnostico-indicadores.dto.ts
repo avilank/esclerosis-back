@@ -13,7 +13,9 @@ export class CreateDiagnosticoIndicadoresDto {
   @IsNotEmpty()
   valor: string;
 
+  // El cliente manda 'YYYY-MM-DD'; la columna es `date` y TypeORM la maneja
+  // como string en ambos sentidos.
   @IsDateString()
   @IsNotEmpty()
-  fechaMedicion: Date;
+  fechaMedicion: string;
 }

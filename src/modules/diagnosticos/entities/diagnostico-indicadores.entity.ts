@@ -18,8 +18,13 @@ export class DiagnosticoIndicadorClinico {
   @Column({ type: 'varchar', length: 255 })
   valor: string;
 
+  /**
+   * Columna `date`: TypeORM la hidrata como string 'YYYY-MM-DD', no como Date.
+   * Declararla `Date` invitaba a llamarle metodos de Date y reventar en runtime
+   * (ver common/utils/fecha.ts).
+   */
   @Column({ name: 'fechaMedicion', type: 'date' })
-  fechaMedicion: Date;
+  fechaMedicion: string;
 
   @ManyToOne(
     () => Diagnostico,

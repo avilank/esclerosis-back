@@ -15,6 +15,7 @@ import { HechoRecetas } from '../../../entities/esclerosisd/hechos/hecho-recetas
 import { HechoIndicador } from '../../../entities/esclerosisd/hechos/hecho-indicador.entity';
 import { HechoPacientesEM } from '../../../entities/esclerosisd/hechos/hecho-pacientes-em.entity';
 import { HechoPacientesAtendidos } from '../../../entities/esclerosisd/hechos/hecho-pacientes-atendidos.entity';
+import { partesDeFecha } from '../../../common/utils/fecha';
 
 @Injectable()
 export class AnalyticsEtlsService {
@@ -107,39 +108,35 @@ export class AnalyticsEtlsService {
   async cargarDimTiempoDesdeDiagnosticosYRecetas(): Promise<void> {
     const recetas = await this.recetaRepo.find();
 
+    // `fechaReceta` es una columna `date`: llega como string 'YYYY-MM-DD'.
+    // Tratarla como `Date` (`.toISOString()`) lanzaba
+    // "TypeError: r.fechaReceta.toISOString is not a function" y tumbaba todo
+    // el ETL en cuanto habia una receta.
     const fechasUnicas = new Set<string>();
-
     for (const r of recetas) {
-      if (!r.fechaReceta) continue;
-      const key = r.fechaReceta.toISOString().substring(0, 10);
-      fechasUnicas.add(key);
+      const partes = partesDeFecha(r.fechaReceta);
+      if (partes) fechasUnicas.add(String(partes.fechaId));
     }
 
     for (const key of fechasUnicas) {
-      const fecha = new Date(key);
-
+      const fechaId = Number.parseInt(key, 10);
       const existente = await this.dimTiempoRepo.findOne({
-        where: {
-          anio: fecha.getUTCFullYear(),
-          mes: fecha.getUTCMonth() + 1,
-          dia: fecha.getUTCDate(),
-        },
+        where: { fechaId },
       });
+      if (existente) continue;
 
-      if (!existente) {
-        const trimestre = Math.floor(fecha.getUTCMonth() / 3) + 1;
-        const dim = this.dimTiempoRepo.create({
-          fechaId:
-            fecha.getUTCFullYear() * 10000 +
-            (fecha.getUTCMonth() + 1) * 100 +
-            fecha.getUTCDate(),
-          anio: fecha.getUTCFullYear(),
-          trimestre,
-          mes: fecha.getUTCMonth() + 1,
-          dia: fecha.getUTCDate(),
-        });
-        await this.dimTiempoRepo.save(dim);
-      }
+      const anio = Math.floor(fechaId / 10000);
+      const mes = Math.floor((fechaId % 10000) / 100);
+      const dia = fechaId % 100;
+      await this.dimTiempoRepo.save(
+        this.dimTiempoRepo.create({
+          fechaId,
+          anio,
+          trimestre: Math.floor((mes - 1) / 3) + 1,
+          mes,
+          dia,
+        }),
+      );
     }
   }
 
@@ -165,7 +162,17 @@ export class AnalyticsEtlsService {
     }
   }
 
+  /**
+   * Recarga `HechoRecetas` desde cero. Limpia la tabla primero a proposito: es
+   * una carga completa, no incremental. Sin ese `delete`, cada llamada a
+   * `POST /analytics/etl/hechos` (o `/todo`) agregaba otra fila por receta y el
+   * reporte de dominancia de IA contaba los mismos datos varias veces.
+   */
   async cargarHechoRecetas(): Promise<void> {
+    // `clear()` usa TRUNCATE y falla si hay FKs apuntando a la tabla; `delete`
+    // con un filtro siempre-verdadero es equivalente para este caso.
+    await this.hechoRecetasRepo.createQueryBuilder().delete().execute();
+
     const recetas = await this.recetaRepo.find({
       relations: [
         'diagnostico',
@@ -175,20 +182,17 @@ export class AnalyticsEtlsService {
     });
 
     for (const r of recetas) {
-      if (!r.fechaReceta) continue;
-
-      const fecha = r.fechaReceta;
-      const anio = fecha.getUTCFullYear();
-      const mes = fecha.getUTCMonth() + 1;
-      const dia = fecha.getUTCDate();
-      const trimestre = Math.floor(fecha.getUTCMonth() / 3) + 1;
+      // Misma columna `date` -> string: se descompone sin pasar por `Date`.
+      const partes = partesDeFecha(r.fechaReceta);
+      if (!partes) continue;
+      const { anio, mes, dia, trimestre, fechaId } = partes;
 
       let dimTiempo = await this.dimTiempoRepo.findOne({
-        where: { anio, mes, dia },
+        where: { fechaId },
       });
       if (!dimTiempo) {
         dimTiempo = this.dimTiempoRepo.create({
-          fechaId: anio * 10000 + mes * 100 + dia,
+          fechaId,
           anio,
           mes,
           dia,
@@ -263,8 +267,8 @@ export class AnalyticsEtlsService {
     await this.cargarHechoRecetas();
   }
 
+  /** `cargarHechoRecetas` ya limpia la tabla; se mantiene por compatibilidad. */
   async reloadHechoRecetas(): Promise<{ status: string }> {
-    await this.hechoRecetasRepo.clear();
     await this.cargarHechoRecetas();
     return { status: 'ok' };
   }

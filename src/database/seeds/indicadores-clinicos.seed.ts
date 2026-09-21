@@ -27,15 +27,13 @@ const INDICADORES: IndicadorSeed[] = [
   },
   {
     nombre: 'T25FW',
-    descripcion:
-      'Timed 25-Foot Walk. Tiempo en segundos, velocidad de marcha.',
+    descripcion: 'Timed 25-Foot Walk. Tiempo en segundos, velocidad de marcha.',
     unidad: IndicadorUnidad.NUMERO,
     categoriaIndex: 0,
   },
   {
     nombre: '9HPT',
-    descripcion:
-      'Nine-Hole Peg Test. Tiempo en segundos para destreza manual.',
+    descripcion: 'Nine-Hole Peg Test. Tiempo en segundos para destreza manual.',
     unidad: IndicadorUnidad.NUMERO,
     categoriaIndex: 0,
   },
@@ -77,8 +75,7 @@ const INDICADORES: IndicadorSeed[] = [
   },
   {
     nombre: 'Impacto funcional global',
-    descripcion:
-      'Movilidad, marcha, manos, caídas, espasticidad, dolor, etc.',
+    descripcion: 'Movilidad, marcha, manos, caídas, espasticidad, dolor, etc.',
     unidad: IndicadorUnidad.TEXTO,
     categoriaIndex: 3,
   },

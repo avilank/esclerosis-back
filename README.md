@@ -27,7 +27,8 @@ npm run seed
 
 O todo junto: `npm run setup`.
 
-4. Levanta el API:
+4. Levanta el API (escucha en el puerto de `PORT`, por defecto 4027; la app
+   Flutter apunta ahí en `env/dev.json`):
 
 ```bash
 npm run dev
@@ -52,6 +53,44 @@ npm run dev
 | `npm run dev` | API en watch |
 | `npm test` | Tests unitarios y de integración (no necesitan base de datos) |
 | `npm run test:e2e` | E2E contra Postgres (se salta solo si la base no responde) |
+
+## Base de datos
+
+Todo vive en una sola base Postgres (`DB_NAME`, por defecto `clinica-bd`): las
+tablas operativas y las de reportes (`Dim*` / `Hecho*`). Ya **no** hay una
+segunda conexión ni la base `esclerosisd`, y el ETL ya no usa `dblink`.
+
+- `npm run migrate:schema` crea la base si falta y aplica
+  `src/database/migrations/create_clinica_bd_schema.sql` +
+  `create_reportes_tables.sql`. Es idempotente.
+- El script que los ejecuta vive en `src/database/scripts/`, **no** en
+  `migrations/`: el glob de `migrations` en `typeorm.config.ts` importa todos los
+  `.ts` de esa carpeta, y ese archivo se ejecuta al importarse (la suite e2e
+  disparaba la migración completa como efecto colateral).
+- `DimTiempo.Fecha_Id` es la fecha como entero `YYYYMMDD` (no un autoincremental).
+  La pantalla de reportes de la app depende de ese formato
+  (`ReportesScreen._toFechaId`).
+
+### Columnas `date` y TypeORM
+
+TypeORM hidrata las columnas `type: 'date'` como **string** `'YYYY-MM-DD'`, no
+como `Date`. Por eso `fechaDiagnostico`, `fechaReceta`, `fechaMedicion` y
+`fechaIngreso` están declaradas `string` en las entidades, y las utilidades para
+descomponerlas están en `src/common/utils/fecha.ts`. Declararlas `Date` hacía que
+llamar `.toISOString()` reventara en tiempo de ejecución y tumbara el ETL.
+
+### Dos ETL en paralelo (pendiente)
+
+Hay dos implementaciones que escriben las mismas tablas de hechos:
+
+| | Cuándo corre | Grano de `HechoRecetas` |
+|---|---|---|
+| `ScheduledEtlService` (SQL directo) | al arrancar el server y a las 2 AM | agregado (`GROUP BY` modelo/tiempo/organización) |
+| `AnalyticsEtlsService` (`POST /analytics/etl/*`) | a pedido | una fila por receta |
+
+Las dos son idempotentes (limpian antes de cargar), pero **no producen el mismo
+resultado**: el reporte depende de cuál corrió último. Conviene quedarse con una
+sola; la de SQL directo es la que se ejecuta sola.
 
 ## Seguridad
 
@@ -131,3 +170,7 @@ caracteres, combinando letras y números. La app Flutter valida lo mismo en
 - `UsuariosService.create` compensa con borrados manuales en vez de usar una
   transacción (`AuthService.register` sí es transaccional).
 - No hay tabla de auditoría persistente; la trazabilidad vive en los logs.
+- Quedan dos ETL en paralelo (ver «Base de datos»).
+- `Modelo_IA` se guarda siempre como `'OpenRouter'`, pero `HechoRecetas` mide
+  `CantidadRecetasGeneradasCopilot` / `...Deepseek`: esas dos columnas quedan en
+  0 y el reporte de dominancia usa el fallback transaccional de la app.
